@@ -1,0 +1,36 @@
+# Ignore Visual Studio files
+.vs/
+*.suo
+*.user
+*.sln.docstates
+
+# Ignore build output
+/bin/
+/obj/
+
+# Ignore NuGet packages
+*.nuget.*
+*.nupkg
+packages/
+
+# Ignore Resharper files
+_ReSharper*/
+
+# Ignore user-specific files
+*.cache
+*.log
+*.vscode
+
+# Ignore Windows-specific files
+Thumbs.db
+Desktop.ini
+
+# Ignore Mac-specific files
+.DS_Store
+
+# Ignore JetBrains Rider specific files
+.idea/
+*.sln.iml
+
+# Ignore node modules if using npm
+node_modules/
