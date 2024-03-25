@@ -34,3 +34,4 @@ Desktop.ini
 
 # Ignore node modules if using npm
 node_modules/
+/Udemy.Core/obj

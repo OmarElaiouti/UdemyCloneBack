@@ -4,26 +4,42 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Udemy.Core.Interfaces;
+using Udemy.Core.Models;
+using Udemy.Core.Models.UdemyContext;
+using Udemy.EF.Repository;
 using UdemyCloneBackend.Helper;
-using UdemyCloneBackend.Models;
-using UdemyCloneBackend.Models.UdemyContext;
 using UdemyCloneBackend.Services;
 
-namespace UdemyCloneBackend
+namespace UdemyApi
 {
     public class Program
     {
         public static void Main(string[] args)
         {
+
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.AddCors(options =>
+            {
+            options.AddPolicy(
+                name: "CORSOpenPolicy", 
+                builder => {    builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+                     });
+                });
+
+                
 
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
             builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<UdemyContext>();
 
             builder.Services.AddScoped<IAuthService, AuthService>();
+
+            builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+
 
             builder.Services.AddAuthentication(options =>
             {
@@ -64,7 +80,8 @@ namespace UdemyCloneBackend
                 app.UseOpenApi();
                 app.UseSwaggerUi();
             }
-
+            app.UseDeveloperExceptionPage();
+            app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();
 

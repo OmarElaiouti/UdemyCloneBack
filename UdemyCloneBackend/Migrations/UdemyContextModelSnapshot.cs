@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using UdemyCloneBackend.Models.UdemyContext;
+using Udemy.Core.Models.UdemyContext;
 
 #nullable disable
 
@@ -287,7 +287,7 @@ namespace UdemyCloneBackend.Migrations
                     b.Property<int?>("ParentId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Score")
+                    b.Property<int?>("Score")
                         .HasColumnType("int");
 
                     b.Property<string>("Type")
@@ -748,7 +748,6 @@ namespace UdemyCloneBackend.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Biography")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("CartID")
@@ -766,11 +765,9 @@ namespace UdemyCloneBackend.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Headline")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
