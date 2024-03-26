@@ -13,5 +13,7 @@ namespace Udemy.Core.Interfaces
 
         IEnumerable<T> GetAll();
 
+
+
     }
 }

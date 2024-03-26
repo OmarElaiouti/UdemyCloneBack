@@ -17,18 +17,11 @@ namespace UdemyApi
     {
         public static void Main(string[] args)
         {
-
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
-            builder.Services.AddCors(options =>
-            {
-            options.AddPolicy(
-                name: "CORSOpenPolicy", 
-                builder => {    builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
-                     });
-                });
+    
 
                 
 
@@ -81,7 +74,7 @@ namespace UdemyApi
                 app.UseSwaggerUi();
             }
             app.UseDeveloperExceptionPage();
-            app.UseCors();
+            app.UseCors(builder => builder.WithOrigins("http://localhost:4200").AllowAnyHeader());
             app.UseAuthentication();
             app.UseAuthorization();
 
