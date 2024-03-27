@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Udemy.Core.Models.UdemyContext;
 
@@ -11,9 +12,11 @@ using Udemy.Core.Models.UdemyContext;
 namespace UdemyCloneBackend.Migrations
 {
     [DbContext(typeof(UdemyContext))]
-    partial class UdemyContextModelSnapshot : ModelSnapshot
+    [Migration("20240327005906_AddNameToUser")]
+    partial class AddNameToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1239,7 +1242,7 @@ namespace UdemyCloneBackend.Migrations
             modelBuilder.Entity("Udemy.Core.Models.Section", b =>
                 {
                     b.HasOne("Udemy.Core.Models.Course", "Course")
-                        .WithMany("Sections")
+                        .WithMany()
                         .HasForeignKey("CourseID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1303,8 +1306,6 @@ namespace UdemyCloneBackend.Migrations
                     b.Navigation("Objectives");
 
                     b.Navigation("Requirements");
-
-                    b.Navigation("Sections");
                 });
 
             modelBuilder.Entity("Udemy.Core.Models.Enrollment", b =>

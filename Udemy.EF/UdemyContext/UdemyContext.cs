@@ -6,22 +6,26 @@ namespace Udemy.Core.Models.UdemyContext
 {
     public class UdemyContext : IdentityDbContext<User>
     {
-        public DbSet<Course> Courses { get; set; }
-        public DbSet<Cart> Carts { get; set; }
-        public DbSet<Transaction> Transactions { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Section> Sections { get; set; }
-        public DbSet<Lesson> Lessons { get; set; }
-        public DbSet<Comment> Comments { get; set; }
-        public DbSet<Announcement> Announcements { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
-        public DbSet<Certificate> Certificates { get; set; }
-        public DbSet<Support> Supports { get; set; }
-        public DbSet<Notification> Notifications { get; set; }
-        public DbSet<Gift> Gifts { get; set; }
-        public DbSet<LessonProgress> LessonProgresses { get; set; }
-        public DbSet<Enrollment> Enrollments { get; set; }
-        public DbSet<Note> Notes { get; set; }
+        public virtual DbSet<Course> Courses { get; set; }
+        public virtual DbSet<Cart> Carts { get; set; }
+        public virtual DbSet<Transaction> Transactions { get; set; }
+        public virtual DbSet<Category> Categories { get; set; }
+        public virtual DbSet<Section> Sections { get; set; }
+        public virtual DbSet<Lesson> Lessons { get; set; }
+        public virtual DbSet<Comment> Comments { get; set; }
+        public virtual DbSet<Announcement> Announcements { get; set; }
+        public virtual DbSet<Feedback> Feedbacks { get; set; }
+        public virtual DbSet<Certificate> Certificates { get; set; }
+        public virtual DbSet<Support> Supports { get; set; }
+        public virtual DbSet<Notification> Notifications { get; set; }
+        public virtual DbSet<Gift> Gifts { get; set; }
+        public virtual DbSet<LessonProgress> LessonProgresses { get; set; }
+        public virtual DbSet<Enrollment> Enrollments { get; set; }
+        public virtual DbSet<Note> Notes { get; set; }
+        public virtual DbSet<Requirement> Requirements { get; set; }
+
+        public virtual DbSet<Objective> Objectives { get; set; }
+
 
 
         public UdemyContext(DbContextOptions<UdemyContext> options) : base(options)

@@ -1,10 +1,13 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Services;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
 using Udemy.EF.Repository;
@@ -39,6 +42,10 @@ namespace UdemyApi
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            builder.Services.AddScoped( typeof(ICourseRepository<>), typeof(CourseRepository<>));
+            builder.Services.AddScoped<ICourseService,CourseService>();
+
+
 
 
             builder.Services.AddAuthentication(options =>
@@ -68,7 +75,7 @@ namespace UdemyApi
             builder.Services.AddOpenApiDocument();
             builder.Services.AddDbContext<UdemyContext>(
 
-                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con1"))
+                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con2"))
 
                 );
 
@@ -89,6 +96,8 @@ namespace UdemyApi
             app.MapControllers();
 
             app.Run();
+
+
         }
     }
 }

@@ -6,6 +6,9 @@ namespace Udemy.Core.Models
 {
     public class User : IdentityUser
     {
+        [Required]
+        public string Name { get; set; }
+
         public string? Headline { get; set; }
 
         public string? Image { get; set; }
@@ -30,6 +33,8 @@ namespace Udemy.Core.Models
         public virtual ICollection<User> Following { get; set; }
 
         public virtual ICollection<Enrollment> Enrollments { get; set; }
+
+        public virtual ICollection<Notification> Notifications { get; set; }
 
 
     }
