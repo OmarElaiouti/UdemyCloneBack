@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Udemy.Core.Models.UdemyContext;
 
@@ -11,9 +12,11 @@ using Udemy.Core.Models.UdemyContext;
 namespace UdemyCloneBackend.Migrations
 {
     [DbContext(typeof(UdemyContext))]
-    partial class UdemyContextModelSnapshot : ModelSnapshot
+    [Migration("20240326025754_list-objectives")]
+    partial class listobjectives
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -198,21 +201,6 @@ namespace UdemyCloneBackend.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("NotificationUser", b =>
-                {
-                    b.Property<int>("NotificationsNotificationID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("NotificationsNotificationID", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("NotificationUser");
                 });
 
             modelBuilder.Entity("Subscription", b =>
@@ -425,12 +413,8 @@ namespace UdemyCloneBackend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<float>("Price")
-                        .HasColumnType("real");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Promo")
                         .IsRequired()
@@ -441,6 +425,10 @@ namespace UdemyCloneBackend.Migrations
 
                     b.Property<bool?>("PromoStatus")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Requirements")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("CourseID");
 
@@ -466,9 +454,6 @@ namespace UdemyCloneBackend.Migrations
                     b.Property<DateTime>("EnrollmentDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("FeedbackId")
-                        .HasColumnType("int");
-
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -478,8 +463,6 @@ namespace UdemyCloneBackend.Migrations
                     b.HasIndex("CertificateId");
 
                     b.HasIndex("CourseId");
-
-                    b.HasIndex("FeedbackId");
 
                     b.HasIndex("UserId");
 
@@ -501,8 +484,8 @@ namespace UdemyCloneBackend.Migrations
                     b.Property<int>("EnrollmentId")
                         .HasColumnType("int");
 
-                    b.Property<float>("Rate")
-                        .HasColumnType("real");
+                    b.Property<int>("Rate")
+                        .HasColumnType("int");
 
                     b.HasKey("FeedbackID");
 
@@ -555,8 +538,8 @@ namespace UdemyCloneBackend.Migrations
                     b.Property<bool>("Allowed")
                         .HasColumnType("bit");
 
-                    b.Property<int>("Duration")
-                        .HasColumnType("int");
+                    b.Property<double>("Duration")
+                        .HasColumnType("float");
 
                     b.Property<string>("File")
                         .IsRequired()
@@ -689,29 +672,7 @@ namespace UdemyCloneBackend.Migrations
 
                     b.HasIndex("CourseID");
 
-                    b.ToTable("Objectives");
-                });
-
-            modelBuilder.Entity("Udemy.Core.Models.Requirement", b =>
-                {
-                    b.Property<int>("RequirementID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequirementID"));
-
-                    b.Property<int>("CourseID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("RequirementID");
-
-                    b.HasIndex("CourseID");
-
-                    b.ToTable("Requirements");
+                    b.ToTable("Objective");
                 });
 
             modelBuilder.Entity("Udemy.Core.Models.Section", b =>
@@ -836,10 +797,6 @@ namespace UdemyCloneBackend.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -847,6 +804,9 @@ namespace UdemyCloneBackend.Migrations
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<int?>("NotificationID")
+                        .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
@@ -878,6 +838,8 @@ namespace UdemyCloneBackend.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
+
+                    b.HasIndex("NotificationID");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -974,21 +936,6 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NotificationUser", b =>
-                {
-                    b.HasOne("Udemy.Core.Models.Notification", null)
-                        .WithMany()
-                        .HasForeignKey("NotificationsNotificationID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Udemy.Core.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
@@ -1099,11 +1046,6 @@ namespace UdemyCloneBackend.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Udemy.Core.Models.Feedback", "Feedback")
-                        .WithMany()
-                        .HasForeignKey("FeedbackId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany("Enrollments")
                         .HasForeignKey("UserId")
@@ -1114,15 +1056,13 @@ namespace UdemyCloneBackend.Migrations
 
                     b.Navigation("Course");
 
-                    b.Navigation("Feedback");
-
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("Udemy.Core.Models.Feedback", b =>
                 {
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
-                        .WithMany()
+                        .WithMany("Feedbacks")
                         .HasForeignKey("EnrollmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1225,21 +1165,10 @@ namespace UdemyCloneBackend.Migrations
                     b.Navigation("Course");
                 });
 
-            modelBuilder.Entity("Udemy.Core.Models.Requirement", b =>
-                {
-                    b.HasOne("Udemy.Core.Models.Course", "Course")
-                        .WithMany("Requirements")
-                        .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-                });
-
             modelBuilder.Entity("Udemy.Core.Models.Section", b =>
                 {
                     b.HasOne("Udemy.Core.Models.Course", "Course")
-                        .WithMany("Sections")
+                        .WithMany()
                         .HasForeignKey("CourseID")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -1283,6 +1212,11 @@ namespace UdemyCloneBackend.Migrations
                         .HasForeignKey("CartID")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("Udemy.Core.Models.Notification", null)
+                        .WithMany("Users")
+                        .HasForeignKey("NotificationID")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Cart");
                 });
 
@@ -1301,14 +1235,12 @@ namespace UdemyCloneBackend.Migrations
                     b.Navigation("Enrollments");
 
                     b.Navigation("Objectives");
-
-                    b.Navigation("Requirements");
-
-                    b.Navigation("Sections");
                 });
 
             modelBuilder.Entity("Udemy.Core.Models.Enrollment", b =>
                 {
+                    b.Navigation("Feedbacks");
+
                     b.Navigation("UserNotes");
 
                     b.Navigation("UserProgress");
@@ -1319,6 +1251,11 @@ namespace UdemyCloneBackend.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Notes");
+                });
+
+            modelBuilder.Entity("Udemy.Core.Models.Notification", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Udemy.Core.Models.Section", b =>

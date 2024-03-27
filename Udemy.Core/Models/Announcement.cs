@@ -8,7 +8,7 @@ namespace Udemy.Core.Models
         [Key]
         public int AnnouncementID { get; set; }
 
-        public List<string> Image { get; set; }
+        public string Image { get; set; }
 
         [Required]
         public string Content { get; set; }

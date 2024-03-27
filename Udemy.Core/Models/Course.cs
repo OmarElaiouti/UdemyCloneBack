@@ -12,20 +12,19 @@ namespace Udemy.Core.Models
         public bool Approved { get; set; }
 
         [Required]
+        public string Name { get; set; }
+
+        [Required]
         public DateTime DateCreated { get; set; }
 
         [Required]
-        public decimal Price { get; set; }
+        public float Price { get; set; }
 
         public string Level { get; set; }
 
         public string BriefDescription { get; set; }
 
         public string Audience { get; set; }
-
-        public string Objectives { get; set; }
-
-        public string Requirements { get; set; }
 
         public string FullDescription { get; set; }
 
@@ -54,8 +53,12 @@ namespace Udemy.Core.Models
         public virtual ICollection<Cart> Carts { get; set; }
         public virtual ICollection<User> WishListed { get; set; }
         public virtual ICollection<Category> Categories { get; set; }
+        public virtual ICollection<Objective> Objectives { get; set; }
+        public virtual ICollection<Enrollment> Enrollments { get; set; }
+        public virtual ICollection<Section> Sections { get; set; }
 
-        public ICollection<Enrollment> Enrollments { get; set; }
+        public virtual ICollection<Requirement> Requirements { get; set; }
+
 
 
 

@@ -24,7 +24,7 @@ namespace Udemy.Core.Models
         // File path or URL to the content file
         public string File { get; set; }
 
-        public double Duration { get; set; }
+        public int Duration { get; set; }
 
         // Type of content (e.g., video, text, audio, etc.)
         public string Type { get; set; }
