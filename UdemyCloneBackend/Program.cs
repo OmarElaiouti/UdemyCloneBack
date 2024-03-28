@@ -38,12 +38,13 @@ namespace UdemyApi
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
             builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<UdemyContext>();
-
+            builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
-            builder.Services.AddScoped( typeof(ICourseRepository<>), typeof(CourseRepository<>));
-            builder.Services.AddScoped<ICourseService,CourseService>();
+            builder.Services.AddScoped<ICourseRepository,CourseRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<ICartRepository, CartRepository>();
 
 
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Udemy.Core.DTOs;
@@ -9,10 +8,14 @@ using Udemy.Core.Models;
 
 namespace Udemy.Core.Interfaces
 {
-    public interface ICourseRepository<T> where T : class
+    public interface ICourseRepository
     {
+        Task<IEnumerable<SearchCourseDto>> SearchCoursesByNameAsync(string searchString);
+        Task<IEnumerable<CourseCardWithRateDto>> SearchCoursesByNameAsync(string searchString, int count, bool smallCard);
+        Task<IEnumerable<CourseCardWithRateDto>> GetRandomCourses(int count);
+        Task<IEnumerable<CourseCardWithRateDto>> GetTopRatedCourses(int count);
+        Task<IEnumerable<CourseCardWithRateDto>> GetCoursesByCategory(string categoryName, int? count);
 
-        List<T> Search(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes);
-
+        Task<IEnumerable<CourseCardWithRateDto>> GetCoursesInCartByUserId(string id);
     }
 }

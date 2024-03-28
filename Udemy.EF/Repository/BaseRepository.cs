@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
-using Udemy.Core.Models.UdemyContext;
+using Udemy.Core.DTOs;
 using Udemy.Core.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
-
+using Udemy.Core.Models;
+using Udemy.Core.Models.UdemyContext;
 
 namespace Udemy.EF.Repository
 {
@@ -20,28 +21,43 @@ namespace Udemy.EF.Repository
             _dbContext = dbContext;
         }
 
-        public T Get(int id)
+        public async Task<IEnumerable<T>> GetAll(bool includeRelatedEntities = false, params Expression<Func<T, object>>[] includeProperties)
         {
-            throw new NotImplementedException();
+            IQueryable<T> query = _dbContext.Set<T>();
+
+            if (includeRelatedEntities)
+            {
+                query = IncludeRelatedEntities(query, includeProperties);
+            }
+
+            return await query.ToListAsync();
         }
 
-        public IEnumerable<T> GetAll()
+        private IQueryable<T> IncludeRelatedEntities(IQueryable<T> query, params Expression<Func<T, object>>[] includeProperties)
         {
-            return _dbContext.Set<T>().ToList();
+            foreach (var includeProperty in includeProperties)
+            {
+                query = query.Include(includeProperty);
+
+                var memberExpression = includeProperty.Body as MemberExpression;
+                if (memberExpression != null)
+                {
+                    var propertyType = memberExpression.Type;
+                    if (propertyType.IsGenericType && propertyType.GetGenericTypeDefinition() == typeof(ICollection<>))
+                    {
+                        var elementType = propertyType.GetGenericArguments()[0];
+                        // Get the parameter from the includeProperty expression
+                        var parameter = Expression.Parameter(elementType, "x");
+                        // Build the subInclude expression with the correct parameter
+                        var subInclude = Expression.Lambda(Expression.Property(parameter, "Select"), parameter);
+                        query = query.Provider.CreateQuery<T>(Expression.Call(typeof(EntityFrameworkQueryableExtensions), "Include", new Type[] { typeof(T), elementType }, query.Expression, subInclude));
+                    }
+                }
+            }
+
+            return query;
         }
 
-        //public IEnumerable<T> GetByQuery(Expression<Func<T, bool>> predicate, params Expression<Func<T, object>>[] includes)
-        //{
-        //    var query = _dbContext.Set<T>().Where(predicate);
-
-        //    // Include navigation properties
-        //    foreach (var includeExpression in includes)
-        //    {
-        //        query = query.Include(includeExpression);
-        //    }
-
-        //    return query.ToList();
-        //}
 
     }
 }
