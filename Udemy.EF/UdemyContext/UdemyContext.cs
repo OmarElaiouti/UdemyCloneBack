@@ -44,19 +44,19 @@ namespace Udemy.Core.Models.UdemyContext
                 .HasOne(g => g.Sender)
                 .WithMany()
                 .HasForeignKey(g => g.SenderID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Gift>()
                 .HasOne(g => g.Receiver)
                 .WithMany()
                 .HasForeignKey(g => g.ReceiverID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Gift>()
                 .HasOne(g => g.GiftedCourse)
                 .WithMany()
                 .HasForeignKey(g => g.GiftedCourseID)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Course>()
                 .HasOne(c => c.Instructor)
@@ -72,49 +72,11 @@ namespace Udemy.Core.Models.UdemyContext
                 j => j.HasOne<User>().WithMany().HasForeignKey("SubscribedToUserId")
             );
 
-            //        modelBuilder.Entity<User>()
-            //.HasMany(u => u.WishList)
-            //.WithMany(c => c.WishListed)
-            //.UsingEntity<Dictionary<string, object>>(
-            //    "WishList",
-            //    j => j
-            //        .HasOne<Course>()
-            //        .WithMany()
-            //        .HasForeignKey("CourseID")
-            //        .OnDelete(DeleteBehavior.NoAction), // Specify the cascade behavior here
-            //    j => j
-            //        .HasOne<User>()
-            //        .WithMany()
-            //        .HasForeignKey("UserID")
-            //        .OnDelete(DeleteBehavior.NoAction) // Specify the cascade behavior here
-            //);
-            //        modelBuilder.Entity<Course>()
-            //.HasOne(c => c.Instructor)
-            //.WithMany(i => i.CreatedCourses)
-            //.HasForeignKey(c => c.InstructorID)
-            //.OnDelete(DeleteBehavior.NoAction); // Specify the cascade behavior here
-
-            //        modelBuilder.Entity<Enrollment>()
-            //.HasOne(e => e.User)
-            //.WithMany(u => u.Enrollments)
-            //.HasForeignKey(e => e.UserId)
-            //.OnDelete(DeleteBehavior.NoAction); // Specify the cascade behavior here
-
-            //        modelBuilder.Entity<Lesson>()
-            //.HasOne(l => l.Section)
-            //.WithMany(s => s.Lessons)
-            //.HasForeignKey(l => l.SectionID)
-            //.OnDelete(DeleteBehavior.NoAction);
-
-            //        modelBuilder.Entity<Note>()
-            //.HasOne(n => n.Lesson)
-            //.WithMany(l => l.Notes)
-            //.HasForeignKey(n => n.LessonID)
-            //.OnDelete(DeleteBehavior.Restrict);
+        
 
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
-                relationship.DeleteBehavior = DeleteBehavior.Restrict;
+                relationship.DeleteBehavior = DeleteBehavior.Cascade;
             }
         }
     }

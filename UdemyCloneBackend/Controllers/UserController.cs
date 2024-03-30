@@ -95,5 +95,31 @@ namespace UdemyApi.Controllers
                 return StatusCode(500, "Failed to create enrollment: " + ex.Message);
             }
         }
+
+        [HttpDelete("delete-account")]
+        public async Task<IActionResult> DeleteAccount([FromHeader(Name = "token")] string token)
+        {
+            try
+            {
+                // Retrieve the user ID from the claims in the authentication token
+                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest("Invalid token or token expired.");
+                }
+
+                // Delete the user account using the repository
+                await _userService.DeleteUserAsync(userId);
+
+                return Ok("Account deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                Console.WriteLine("Error deleting account: " + ex.Message);
+                return StatusCode(500, "An error occurred while deleting the account.");
+            }
+        }
     }
 }

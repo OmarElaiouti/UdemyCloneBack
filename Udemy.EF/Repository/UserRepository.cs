@@ -10,6 +10,7 @@ using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
 using Udemy.Core.Services;
 using Udemy.Core.Exceptions;
+using System.Reflection.Metadata;
 
 namespace Udemy.EF.Repository
 {
@@ -88,7 +89,7 @@ namespace Udemy.EF.Repository
                 {
                     var user = await _dbcontext.Users
                         .Include(u => u.Cart)
-                        .ThenInclude(c => c.CoursesInCart)
+                        .ThenInclude(c => c.CoursesInCart).ThenInclude(g=>g.Price)
                         .FirstOrDefaultAsync(u => u.Id == userId);
 
                     if (user == null)
@@ -99,7 +100,7 @@ namespace Udemy.EF.Repository
                     var transaction = new Transaction
                     {
                         UserID = userId,
-                        Amount = user.Cart.CoursesInCart.Count(),
+                        Amount = user.Cart.CoursesInCart.Sum(c=>c.Price),
                         PurchasedCourses = user.Cart.CoursesInCart,
                         Date = DateTime.UtcNow,
                         Status = "Success" // Assuming status is always true for this scenario
@@ -109,9 +110,12 @@ namespace Udemy.EF.Repository
                     _dbcontext.Transactions.Add(transaction);
                     await _dbcontext.SaveChangesAsync();
 
-                    await ProcessTransactionAsync(transaction, userId);
+                    await ProcessTransactionAndEnrollmentAsync(transaction, userId);
 
-                    await dbTransaction.CommitAsync();
+                    await SendTransactionNotificationAsync(userId, transaction);
+
+
+                    await dbTransaction.CommitAsync(); 
 
                     return transaction;
                 }
@@ -123,36 +127,99 @@ namespace Udemy.EF.Repository
             }
         }
 
-        private async Task ProcessTransactionAsync(Transaction newTransaction, string userId)
+        public async Task DeleteUserAsync(string userId)
         {
-            
-                var transaction = await _dbcontext.Transactions
-                    .Include(t => t.PurchasedCourses)
-                    .FirstOrDefaultAsync(t => t.TransactionID == newTransaction.TransactionID);
-
-                if (transaction != null)
+            try
+            {
+                var user = await _dbcontext.Users.FindAsync(userId);
+                if (user != null)
                 {
-                    // Create enrollment for each course
-                    foreach (var course in transaction.PurchasedCourses)
-                    {
-                        var enrollment = new Enrollment
-                        {
-                            UserId = userId, // Get user id from token
-                            CourseId = course.CourseID,
-                            EnrollmentDate = DateTime.UtcNow
-                            // You may need to set other properties of the enrollment based on your requirements
-                        };
-
-                        // Save enrollment to the database
-                        _dbcontext.Enrollments.Add(enrollment);
-                    }
-
+                    _dbcontext.Users.Remove(user);
                     await _dbcontext.SaveChangesAsync();
                 }
-            
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the exception
+                Console.WriteLine("Error deleting user: " + ex.Message);
+                throw; // Re-throw the exception to propagate it
+            }
         }
 
         #region private methods
+
+
+        private async Task SendTransactionNotificationAsync(string userId, Transaction transaction)
+        {
+            // Example: Send notification to the user
+            var notification = new Notification
+            {
+                EventType = "TransuctionsSuccess",
+                Content = $"You have a successful transuction of {transaction.Amount}$ for {transaction.PurchasedCourses.Count()} courses",
+                Timestamp = DateTime.UtcNow,
+                Status = false,
+                UserID=userId
+            };
+
+            _dbcontext.Notifications.Add(notification);
+            await _dbcontext.SaveChangesAsync();
+
+            // You can also send notifications to other relevant users or parties
+        }
+
+        private async Task SendEnrollmentNotificationAsync(string userId, Enrollment enrollment)
+        {
+            string courseName = _dbcontext.Courses.Find(enrollment.CourseId).Name;
+            // Example: Send notification to the user
+            var notification = new Notification
+            {
+                EventType = "EnrollmentSuccess",
+                Content = $"You have a successful Enrollment in {courseName}, start the journey now!",
+                Timestamp = DateTime.UtcNow,
+                Status = false,
+                UserID = userId
+            };
+
+            _dbcontext.Notifications.Add(notification);
+            await _dbcontext.SaveChangesAsync();
+
+            // You can also send notifications to other relevant users or parties
+        }
+        private async Task ProcessTransactionAndEnrollmentAsync(Transaction newTransaction, string userId)
+        {
+
+            var transaction = await _dbcontext.Transactions
+                .Include(t => t.PurchasedCourses)
+                .FirstOrDefaultAsync(t => t.TransactionID == newTransaction.TransactionID);
+
+            if (transaction != null)
+            {
+                // Create enrollment for each course
+                foreach (var course in transaction.PurchasedCourses)
+                {
+                    var enrollment = new Enrollment
+                    {
+                        UserId = userId, // Get user id from token
+                        CourseId = course.CourseID,
+                        EnrollmentDate = DateTime.UtcNow
+                        // You may need to set other properties of the enrollment based on your requirements
+                    };
+
+                    // Save enrollment to the database
+                    _dbcontext.Enrollments.Add(enrollment);
+
+                    await SendEnrollmentNotificationAsync(userId, enrollment);
+
+                }
+
+
+
+                await _dbcontext.SaveChangesAsync();
+
+
+            }
+
+        }
         private UserDto ConvertToUserDto(User user)
         {
             return new UserDto

@@ -15,7 +15,7 @@ namespace Udemy.Core.Models
 
         public string? Biography { get; set; }
 
-        public virtual ICollection<Course>? CreatedCourses { get; set; }
+        public virtual ICollection<Course> CreatedCourses { get; set; }
 
         public virtual ICollection<Course>? WishList { get; set; }
 

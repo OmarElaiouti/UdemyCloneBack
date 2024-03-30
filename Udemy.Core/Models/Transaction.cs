@@ -12,7 +12,7 @@ namespace Udemy.Core.Models
         public string UserID { get; set; }
 
         [Required]
-        public decimal Amount { get; set; }
+        public float Amount { get; set; }
 
         [Required]
         public DateTime Date { get; set; }
