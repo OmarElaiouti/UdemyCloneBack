@@ -9,7 +9,7 @@ using Udemy.Core.Interfaces;
 
 namespace Udemy.EF.Repository
 {
-    public class BaseRepository<T> : IBaseRepository<T> where T : class
+     public class BaseRepository <T>: IBaseRepository<T> where T : class
     {
         private readonly UdemyContext _dbContext;
 
@@ -18,14 +18,26 @@ namespace Udemy.EF.Repository
             _dbContext = dbContext;
         }
 
-        public T Get(int id)
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<T> GetAll()
         {
             return _dbContext.Set<T>().ToList();
         }
+
+        public  IEnumerable<T> GetById(int Id , Func<T , bool> predicate)
+        {
+            return _dbContext.Set<T>().Where(predicate).ToList();
+        }
+
+
+
+
+        //public IEnumerable<T> GetEntitiesByCondition(Func<T, bool> filterCondition, Func<T, object> orderBy)
+        //{
+        //     return _dbContext.Set<T>()
+        //        .Where(filterCondition)
+        //        .OrderByDescending(orderBy)
+        //        .ToList();
+        //}
+
     }
 }

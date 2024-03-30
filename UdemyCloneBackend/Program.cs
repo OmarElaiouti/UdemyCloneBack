@@ -10,6 +10,8 @@ using Udemy.Core.Models.UdemyContext;
 using Udemy.EF.Repository;
 using UdemyCloneBackend.Helper;
 using UdemyCloneBackend.Services;
+using UdemyUOW.Core.Interfaces;
+using UdemyUOW.EF.Repository;
 
 namespace UdemyApi
 {
@@ -32,7 +34,8 @@ namespace UdemyApi
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
-
+             builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
+            builder.Services.AddScoped<ICourseDataRepository, CourseDataRepository>();
 
             builder.Services.AddAuthentication(options =>
             {
