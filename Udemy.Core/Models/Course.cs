@@ -56,6 +56,7 @@ namespace Udemy.Core.Models
         public virtual ICollection<Objective> Objectives { get; set; }
         public virtual ICollection<Enrollment> Enrollments { get; set; }
         public virtual ICollection<Section> Sections { get; set; }
+        public virtual ICollection<Transaction> Transactions { get; set; }
 
         public virtual ICollection<Requirement> Requirements { get; set; }
 

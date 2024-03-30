@@ -16,6 +16,14 @@ namespace Udemy.Core.Interfaces
         Task<IEnumerable<CourseCardWithRateDto>> GetTopRatedCourses(int count);
         Task<IEnumerable<CourseCardWithRateDto>> GetCoursesByCategory(string categoryName, int? count);
 
-        Task<IEnumerable<CourseCardWithRateDto>> GetCoursesInCartByUserId(string id);
+        Task<IEnumerable<CourseCardWithLevelDto>> GetCoursesInCartByUserId(string id);
+        Task<IEnumerable<CourseCardWithRateDto>> GetCoursesInWishlistByUserId(string id);
+        Task<IEnumerable<CourseCardWithRateDto>> GetEnrolledInCoursesByUserId(string id);
+
+        Task<Course> GetCourseById(int id);
+        Task AddCourseToCartByUserIdAsync(string userId, int courseId);
+        Task AddCourseToWishlistByUserIdAsync(string userId, int courseId);
+
+
     }
 }

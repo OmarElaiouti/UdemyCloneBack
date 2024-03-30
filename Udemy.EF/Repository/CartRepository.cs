@@ -25,12 +25,16 @@ namespace Udemy.EF.Repository
             return carts.FirstOrDefault(c => c.UserID == userId);
         }
 
+        
+
+
+
         #region private methods
 
         private async Task<IEnumerable<Cart>> GetAllWithIncluded()
         {
             var carts = await _cartRepository.GetAll(
-                includeRelatedEntities: true,
+                true,
                 c => c.CoursesInCart
                 
             );

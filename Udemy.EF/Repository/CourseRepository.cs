@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -17,12 +18,18 @@ namespace Udemy.Core.Services
     {
         private readonly IBaseRepository<Course> _courseRepository;
         private readonly ICartRepository _cartRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly UdemyContext _dbcontext;
 
 
-        public CourseRepository(IBaseRepository<Course> courseRepository, ICartRepository cartRepository, UdemyContext dbContext):base(dbContext)
+
+        public CourseRepository(IBaseRepository<Course> courseRepository, IUserRepository userRepository, ICartRepository cartRepository, UdemyContext dbContext):base(dbContext)
         {
             _courseRepository = courseRepository;
             _cartRepository = cartRepository;
+            _userRepository = userRepository;
+            _dbcontext = dbContext;
+
         }
 
         public async Task<IEnumerable<SearchCourseDto>> SearchCoursesByNameAsync(string searchString)
@@ -77,31 +84,86 @@ namespace Udemy.Core.Services
         }
 
 
-
-        public async Task<IEnumerable<CourseCardWithRateDto>> GetCoursesInCartByUserId(string id)
+        public async Task<IEnumerable<CourseCardWithLevelDto>> GetCoursesInCartByUserId(string id)
         {
             var cart = await _cartRepository.GetCartByUserIdAsync(id);
 
-            return MapToCourseCardWithRateDto(cart.CoursesInCart).ToList();
+            return MapToCourseCardWithLevelDto(cart.CoursesInCart).ToList();
 
         }
 
+        public async Task<IEnumerable<CourseCardWithRateDto>> GetCoursesInWishlistByUserId(string id)
+        {
+            var user = await _userRepository.GetUserByIdAsync(id);
 
+            return MapToCourseCardWithRateDto(user.WishList).ToList();
+
+        }
+        public async Task<IEnumerable<CourseCardWithRateDto>> GetEnrolledInCoursesByUserId(string id)
+        {
+            var user = await _userRepository.GetUserByIdAsync(id);
+
+            return MapToCourseCardWithRateDto(user.Enrollments.Select(e=>e.Course).ToList());
+
+        }
+
+        public async Task<Course> GetCourseById(int id)
+        {
+            var course = await GetAllWithIncluded();
+
+
+            return course.FirstOrDefault(c => c.CourseID == id);
+        }
+
+        public async Task AddCourseToCartByUserIdAsync(string userId, int courseId)
+        {
+            var course = await _dbcontext.Courses.FirstOrDefaultAsync(c => c.CourseID == courseId);
+            var cart = await _dbcontext.Carts.Include(c => c.CoursesInCart).FirstOrDefaultAsync(c => c.UserID == userId);
+
+            if (cart == null)
+            {
+                // If the cart doesn't exist for the user, create a new cart
+                cart = new Cart { UserID = userId };
+                _dbcontext.Carts.Add(cart);
+            }
+
+            if (course != null && !cart.CoursesInCart.Any(c => c.CourseID == courseId))
+            {
+                // Add the course to the cart
+                cart.CoursesInCart.Add(course);
+                await _dbcontext.SaveChangesAsync();
+            }
+        }
+
+        public async Task AddCourseToWishlistByUserIdAsync(string userId, int courseId)
+        {
+            var course = await _dbcontext.Courses.FirstOrDefaultAsync(c => c.CourseID == courseId);
+            var user = await _dbcontext.Users.Include(u => u.WishList).FirstOrDefaultAsync(u=>u.Id == userId);
+
+        
+
+            if (course != null && !user.WishList.Any(c => c.CourseID == courseId))
+            {
+                // Add the course to the cart
+                user.WishList.Add(course);
+                await _dbcontext.SaveChangesAsync();
+            }
+        }
 
         #region private methods
         private async Task<IEnumerable<Course>> GetAllWithIncluded()
         {
-                    var courses = await _courseRepository.GetAll(
-                includeRelatedEntities: true,
+            var courses = await _courseRepository.GetAll(
+                true,
                 c => c.Instructor,
-                c => c.Enrollments,
-                c => c.Enrollments.Select(e => e.Feedback),
-                c => c.Sections.Select(s => s.Lessons)
+                c => c.Enrollments.Select(e => e.Feedback), // Corrected to use ThenInclude instead of Include
+                c => c.Sections.SelectMany(s => s.Lessons)
             );
 
             // Ensure the courses are materialized as a list
             return courses;
         }
+
         private IEnumerable<CourseCardWithRateDto> MapToCourseCardWithRateDto(IEnumerable<Course> courses)
         {
             return courses.Select(course => new CourseCardWithRateDto
@@ -109,7 +171,7 @@ namespace Udemy.Core.Services
                 ID = course.CourseID,
                 Image = course.Cover,
                 Name = course.Name,
-                InstructorName = course.Instructor?.Name ?? "Unknown",
+                InstructorName = course.Instructor?.FirstName ?? "Unknown" + " " + course.Instructor?.FirstName ?? "Unknown",
                 Rate = CalculateAverageRate(course),
                 Price = course.Price
             });
@@ -122,14 +184,31 @@ namespace Udemy.Core.Services
                 Image = course.Cover,
                 Name = course.Name,
                 BriefDescription = course.BriefDescription,
-                InstructorName = course.Instructor?.Name ?? "Unknown",
+                InstructorName = course.Instructor?.FirstName ?? "Unknown"+" "+ course.Instructor?.FirstName ?? "Unknown",
                 Rate = CalculateAverageRate(course),
                 Price = course.Price,
                 TotalLessons = course.Sections?.Sum(section => section.Lessons.Count) ?? 0,
                 TotalHours = course.Sections?.Sum(section => section.Lessons.Sum(lesson => lesson.Duration)) ?? 0
             });
         }
-        
+        private IEnumerable<CourseCardWithLevelDto> MapToCourseCardWithLevelDto(IEnumerable<Course> courses)
+        {
+            return courses.Select(course => new CourseCardWithLevelDto
+            {
+                ID = course.CourseID,
+                Image = course.Cover,
+                Name = course.Name,
+                Level = course.Level,
+                InstructorName = course.Instructor?.FirstName ?? "Unknown" + " " + course.Instructor?.FirstName ?? "Unknown",
+                Rate = CalculateAverageRate(course),
+                ReviewersNumber = course.Enrollments.Count(e => e.Feedback != null),
+                Price = course.Price,
+                TotalLessons = course.Sections?.Sum(section => section.Lessons.Count) ?? 0,
+                TotalHours = course.Sections?.Sum(section => section.Lessons.Sum(lesson => lesson.Duration)) ?? 0
+            }); ;
+        }
+
+
         private float CalculateAverageRate(Course course)
         {
             if (course.Enrollments == null || course.Enrollments.Count == 0)

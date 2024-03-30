@@ -13,13 +13,15 @@ namespace UdemyApi.Controllers
     public class CoursesController : ControllerBase
     {
         private readonly ICourseRepository _courseService;
+        private readonly ICartRepository _cartService;
+
         private readonly IAuthService  _authService;
 
-        public CoursesController(ICourseRepository courseService, IAuthService authService)
+        public CoursesController(ICourseRepository courseService, ICartRepository cartService, IAuthService authService)
         {
             _courseService = courseService;
             _authService = authService;
-
+            _cartService = cartService;
         }
 
         [HttpGet("searched-courses")]
@@ -32,7 +34,7 @@ namespace UdemyApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, $"An error occurred: {ex}");
             }
         }
 
@@ -51,7 +53,7 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("courses-in-cart")]
-        public async Task<ActionResult<List<CourseCardWithRateDto>>> GetCoursesInCartByUserId([FromHeader(Name = "Authorization")] string token)
+        public async Task<ActionResult<List<CourseCardWithLevelDto>>> GetCoursesInCartByUserId([FromHeader(Name = "token")] string token)
         {
             try
             {
@@ -75,6 +77,63 @@ namespace UdemyApi.Controllers
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
+
+
+
+        [HttpGet("courses-in-wishlist")]
+        public async Task<ActionResult<List<CourseCardWithRateDto>>> GetCoursesInWishlistlistById([FromHeader(Name = "token")] string token)
+        {
+            try
+            {
+                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest("Invalid token or token expired.");
+                }
+
+                var courses = await _courseService.GetCoursesInWishlistByUserId(userId);
+
+                if (courses == null)
+                {
+                    return NotFound("courses not found in the user cart.");
+                }
+                return Ok(courses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpGet("enrolled-in")]
+        public async Task<ActionResult<List<CourseCardWithRateDto>>> GetEnrolledInCoursesById([FromHeader(Name = "token")] string token)
+        {
+            try
+            {
+                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest("Invalid token or token expired.");
+                }
+
+                var courses = await _courseService.GetEnrolledInCoursesByUserId(userId);
+
+                if (courses == null)
+                {
+                    return NotFound("courses not found in the user cart.");
+                }
+                return Ok(courses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+
+
 
         [HttpGet("random")]
         public async Task<IActionResult> GetRandomCourses()
@@ -121,11 +180,58 @@ namespace UdemyApi.Controllers
 
 
 
+        [HttpPost]
+        [Route("addCourseToCart")]
+        public async Task<IActionResult> AddCourseToCart([FromHeader(Name = "token")] string token,[FromBody] int courseId)
+        {
+            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
 
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("Invalid token or token expired.");
+            }
 
+            try
+            {
+                await _courseService.AddCourseToCartByUserIdAsync(userId, courseId);
+                return Ok("Course added to cart successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
 
+        [HttpPost]
+        [Route("addCourseToWishlist")]
+        public async Task<IActionResult> AddCourseToWishlist([FromHeader(Name = "token")] string token, [FromBody] int courseId)
+        {
+            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
 
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("Invalid token or token expired.");
+            }
 
+            try
+            {
+                await _courseService.AddCourseToWishlistByUserIdAsync(userId, courseId);
+                return Ok("Course added to cart successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
 
     }
+
+
+
+
+
+
+
+
+
 }

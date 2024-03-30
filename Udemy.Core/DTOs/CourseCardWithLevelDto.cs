@@ -6,13 +6,19 @@ using System.Threading.Tasks;
 
 namespace Udemy.Core.DTOs
 {
-    public class CourseCardWithOutRateDto
+    public class CourseCardWithLevelDto
     {
         public int ID { get; set; }
-        public string Image { get; set; }
         public string Name { get; set; }
+        public string Image { get; set; }
+        public string Level { get; set; }
         public string InstructorName { get; set; }
+        public float Rate { get; set; }
         public float Price { get; set; }
+        public int TotalLessons { get; set; }
+        public float TotalHours { get; set; }
+        public int ReviewersNumber { get; set; }
+
 
     }
 }
