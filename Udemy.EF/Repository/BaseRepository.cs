@@ -12,7 +12,7 @@ using Udemy.Core.Models.UdemyContext;
 
 namespace Udemy.EF.Repository
 {
-    public class BaseRepository<T> : IBaseRepository<T> where T : class
+     public class BaseRepository <T>: IBaseRepository<T> where T : class
     {
         private readonly UdemyContext _dbContext;
 
@@ -20,6 +20,7 @@ namespace Udemy.EF.Repository
         {
             _dbContext = dbContext;
         }
+
 
 
         public async Task<IEnumerable<T>> GetAll(bool includeRelatedEntities = false, params Expression<Func<T, object>>[] includeProperties)

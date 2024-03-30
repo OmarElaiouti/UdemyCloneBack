@@ -13,6 +13,8 @@ using Udemy.Core.Models.UdemyContext;
 using Udemy.EF.Repository;
 using UdemyCloneBackend.Helper;
 using UdemyCloneBackend.Services;
+using UdemyUOW.Core.Interfaces;
+using UdemyUOW.EF.Repository;
 
 namespace UdemyApi
 {
@@ -20,18 +22,11 @@ namespace UdemyApi
     {
         public static void Main(string[] args)
         {
-
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
 
-            builder.Services.AddCors(options =>
-            {
-            options.AddPolicy(
-                name: "CORSOpenPolicy", 
-                builder => {    builder.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
-                     });
-                });
+    
 
                 
 
@@ -42,6 +37,8 @@ namespace UdemyApi
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
+            //builder.Services.AddScoped<ICourseDataRepository, CourseDataRepository>();
             builder.Services.AddScoped<ICourseRepository,CourseRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<ICartRepository, CartRepository>();
@@ -89,7 +86,7 @@ namespace UdemyApi
                 app.UseSwaggerUi();
             }
             app.UseDeveloperExceptionPage();
-            app.UseCors();
+            app.UseCors(builder => builder.WithOrigins("http://localhost:4200").AllowAnyHeader());
             app.UseAuthentication();
             app.UseAuthorization();
 
