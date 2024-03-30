@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Udemy.Core.DTOs;
+using Udemy.Core.Models;
 
 namespace Udemy.Core.Interfaces
 {
-    public interface ICourseService
+    public interface ICartRepository
     {
-        List<SearchCourseDto> SearchCourses(string searchString);
+        Task<Cart> GetCartByUserIdAsync(string userId);
 
     }
 }

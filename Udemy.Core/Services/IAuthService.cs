@@ -7,7 +7,8 @@ namespace UdemyCloneBackend.Services
     {
         Task<AuthModel> Register (RegisterModel model); 
 
-
         Task<AuthModel> Login (LoginModel model );
+
+        Task<string> DecodeTokenAsync(string token);
     }
 }

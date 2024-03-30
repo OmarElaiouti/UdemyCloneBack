@@ -12,8 +12,8 @@ using Udemy.Core.Models.UdemyContext;
 namespace UdemyCloneBackend.Migrations
 {
     [DbContext(typeof(UdemyContext))]
-    [Migration("20240327061110_addSections")]
-    partial class addSections
+    [Migration("20240330021320_test")]
+    partial class test
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -53,6 +53,21 @@ namespace UdemyCloneBackend.Migrations
                     b.HasIndex("CoursesCourseID");
 
                     b.ToTable("CategoryCourse");
+                });
+
+            modelBuilder.Entity("CourseTransaction", b =>
+                {
+                    b.Property<int>("PurchasedCoursesCourseID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TransactionsTransactionID")
+                        .HasColumnType("int");
+
+                    b.HasKey("PurchasedCoursesCourseID", "TransactionsTransactionID");
+
+                    b.HasIndex("TransactionsTransactionID");
+
+                    b.ToTable("CourseTransaction");
                 });
 
             modelBuilder.Entity("CourseUser", b =>
@@ -201,21 +216,6 @@ namespace UdemyCloneBackend.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
-                });
-
-            modelBuilder.Entity("NotificationUser", b =>
-                {
-                    b.Property<int>("NotificationsNotificationID")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("NotificationsNotificationID", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("NotificationUser");
                 });
 
             modelBuilder.Entity("Subscription", b =>
@@ -392,7 +392,6 @@ namespace UdemyCloneBackend.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Audience")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BriefDescription")
@@ -400,14 +399,12 @@ namespace UdemyCloneBackend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Cover")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DescVideo")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("Discount")
@@ -436,7 +433,6 @@ namespace UdemyCloneBackend.Migrations
                         .HasColumnType("real");
 
                     b.Property<string>("Promo")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal?>("PromoAmount")
@@ -661,14 +657,19 @@ namespace UdemyCloneBackend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("Status")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("NotificationID");
+
+                    b.HasIndex("UserID");
 
                     b.ToTable("Notifications");
                 });
@@ -782,10 +783,10 @@ namespace UdemyCloneBackend.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionID"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<float>("Amount")
+                        .HasColumnType("real");
 
-                    b.Property<int>("CartID")
+                    b.Property<int?>("CartID")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
@@ -795,9 +796,15 @@ namespace UdemyCloneBackend.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("TransactionID");
 
                     b.HasIndex("CartID");
+
+                    b.HasIndex("UserID");
 
                     b.ToTable("Transactions");
                 });
@@ -827,10 +834,16 @@ namespace UdemyCloneBackend.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<string>("FirstName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Headline")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("LockoutEnabled")
@@ -838,10 +851,6 @@ namespace UdemyCloneBackend.Migrations
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -890,13 +899,13 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Cart", null)
                         .WithMany()
                         .HasForeignKey("CartsCartID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Course", null)
                         .WithMany()
                         .HasForeignKey("CoursesInCartCourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -905,13 +914,28 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Category", null)
                         .WithMany()
                         .HasForeignKey("CategoriesCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Course", null)
                         .WithMany()
                         .HasForeignKey("CoursesCourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CourseTransaction", b =>
+                {
+                    b.HasOne("Udemy.Core.Models.Course", null)
+                        .WithMany()
+                        .HasForeignKey("PurchasedCoursesCourseID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Udemy.Core.Models.Transaction", null)
+                        .WithMany()
+                        .HasForeignKey("TransactionsTransactionID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -920,13 +944,13 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Course", null)
                         .WithMany()
                         .HasForeignKey("WishListCourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("WishListedId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -935,7 +959,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -944,7 +968,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -953,7 +977,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -962,13 +986,13 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -977,22 +1001,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("NotificationUser", b =>
-                {
-                    b.HasOne("Udemy.Core.Models.Notification", null)
-                        .WithMany()
-                        .HasForeignKey("NotificationsNotificationID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Udemy.Core.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -1001,13 +1010,13 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("SubscribedToUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("SubscriberUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -1016,7 +1025,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany()
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1027,7 +1036,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("User");
                 });
@@ -1037,7 +1046,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Category", "ParentCategory")
                         .WithMany("Subcategories")
                         .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("ParentCategory");
                 });
@@ -1047,7 +1056,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany()
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1058,18 +1067,18 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Comment", "AnswerToComment")
                         .WithMany()
                         .HasForeignKey("AnswerTo")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany()
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Lesson", "Lesson")
                         .WithMany("Comments")
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("AnswerToComment");
 
@@ -1083,7 +1092,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", "Instructor")
                         .WithMany("CreatedCourses")
                         .HasForeignKey("InstructorID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Instructor");
@@ -1094,23 +1103,23 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Certificate", "Certificate")
                         .WithMany()
                         .HasForeignKey("CertificateId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Enrollments")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Feedback", "Feedback")
                         .WithMany()
                         .HasForeignKey("FeedbackId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany("Enrollments")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Certificate");
@@ -1127,7 +1136,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany()
                         .HasForeignKey("EnrollmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1138,19 +1147,19 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "GiftedCourse")
                         .WithMany()
                         .HasForeignKey("GiftedCourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", "Receiver")
                         .WithMany()
                         .HasForeignKey("ReceiverID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("GiftedCourse");
@@ -1165,13 +1174,13 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.LessonProgress", "LessonProgress")
                         .WithMany()
                         .HasForeignKey("LessonProgressID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Section", "Section")
                         .WithMany("Lessons")
                         .HasForeignKey("SectionID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("LessonProgress");
@@ -1184,13 +1193,13 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany("UserProgress")
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Lesson", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1203,13 +1212,13 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany("UserNotes")
                         .HasForeignKey("EnrollmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Lesson", "Lesson")
                         .WithMany("Notes")
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1217,12 +1226,23 @@ namespace UdemyCloneBackend.Migrations
                     b.Navigation("Lesson");
                 });
 
+            modelBuilder.Entity("Udemy.Core.Models.Notification", b =>
+                {
+                    b.HasOne("Udemy.Core.Models.User", "User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Udemy.Core.Models.Objective", b =>
                 {
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Objectives")
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1233,7 +1253,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Requirements")
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1244,7 +1264,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Sections")
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1255,12 +1275,12 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.User", "Admin")
                         .WithMany()
                         .HasForeignKey("AdminID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Admin");
@@ -1270,13 +1290,18 @@ namespace UdemyCloneBackend.Migrations
 
             modelBuilder.Entity("Udemy.Core.Models.Transaction", b =>
                 {
-                    b.HasOne("Udemy.Core.Models.Cart", "Cart")
+                    b.HasOne("Udemy.Core.Models.Cart", null)
                         .WithMany("Transactions")
                         .HasForeignKey("CartID")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Udemy.Core.Models.User", "User")
+                        .WithMany("Transactions")
+                        .HasForeignKey("UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Cart");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Udemy.Core.Models.User", b =>
@@ -1284,7 +1309,7 @@ namespace UdemyCloneBackend.Migrations
                     b.HasOne("Udemy.Core.Models.Cart", "Cart")
                         .WithMany()
                         .HasForeignKey("CartID")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Cart");
                 });
@@ -1334,6 +1359,10 @@ namespace UdemyCloneBackend.Migrations
                     b.Navigation("CreatedCourses");
 
                     b.Navigation("Enrollments");
+
+                    b.Navigation("Notifications");
+
+                    b.Navigation("Transactions");
                 });
 #pragma warning restore 612, 618
         }
