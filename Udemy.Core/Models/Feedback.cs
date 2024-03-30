@@ -13,7 +13,7 @@ namespace Udemy.Core.Models
         public virtual Enrollment Enrollment { get; set; } // Navigation property
 
         [Required]
-        public int Rate { get; set; }
+        public float Rate { get; set; }
 
         public string Comment { get; set; }
 

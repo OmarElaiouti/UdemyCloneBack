@@ -18,9 +18,10 @@ namespace Udemy.Core.Models
         public DateTime Timestamp { get; set; }
 
         [Required]
-        public string Status { get; set; }
-
+        public bool Status { get; set; }
         // Navigation property to the User
-        public virtual ICollection<User> Users { get; set; }
+        [ForeignKey("User")]
+        public string UserID { get; set; }
+        public virtual User User { get; set; }
     }
 }

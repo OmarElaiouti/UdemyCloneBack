@@ -1,10 +1,13 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Services;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
 using Udemy.EF.Repository;
@@ -35,10 +38,15 @@ namespace UdemyApi
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
             builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<UdemyContext>();
-
+            builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped<IAuthService, AuthService>();
 
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            builder.Services.AddScoped<ICourseRepository,CourseRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<ICartRepository, CartRepository>();
+
+
 
 
             builder.Services.AddAuthentication(options =>
@@ -68,7 +76,7 @@ namespace UdemyApi
             builder.Services.AddOpenApiDocument();
             builder.Services.AddDbContext<UdemyContext>(
 
-                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con1"))
+                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con2"))
 
                 );
 
@@ -89,6 +97,8 @@ namespace UdemyApi
             app.MapControllers();
 
             app.Run();
+
+
         }
     }
 }
