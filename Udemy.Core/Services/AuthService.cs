@@ -130,10 +130,44 @@ namespace UdemyCloneBackend.Services
                 );
 
             return jwtsecurityToken;
+
+
+
         }
 
 
+        public async Task<string> DecodeTokenAsync(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwt.Key)),
+                ValidateIssuer = false,
+                ValidateAudience = false
+            };
 
+            try
+            {
+                ClaimsPrincipal claimsPrincipal = await Task.Run(() => tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken));
+
+                // Extract the user ID claim from the validated token
+                Claim userIdClaim = claimsPrincipal.FindFirst("UserId");
+
+                if (userIdClaim != null)
+                {
+                    return userIdClaim.Value;
+                }
+                else
+                {
+                    throw new InvalidOperationException("User ID claim not found in token.");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Token validation failed.", ex);
+            }
+        }
 
     }
 }
