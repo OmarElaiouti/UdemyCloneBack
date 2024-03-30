@@ -34,4 +34,9 @@
 	<ProjectReference Include="..\Udemy.EF\Udemy.EF.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\courses\" />
+    <Folder Include="wwwroot\userImages\" />
+  </ItemGroup>
+
 </Project>

@@ -14,7 +14,7 @@ namespace Udemy.Core.Interfaces
         Task<UserDto> GetUserDtoByIdAsync(string userId);
         Task<UserDto> UpdateUserAsync(string userId, UserDto userDto);
         Task<Transaction> CreateAndProcessTransactionAsync(string userId);
-
+        Task<string> UpdateUserImage(string userId, string filePath);
         Task DeleteUserAsync(string userId);
 
     }

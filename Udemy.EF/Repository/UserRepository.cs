@@ -146,6 +146,17 @@ namespace Udemy.EF.Repository
             }
         }
 
+
+        public async Task<string> UpdateUserImage(string userId,string filePath)
+        {
+
+            _dbcontext.Users.FirstOrDefault(u=>u.Id ==userId).Image = filePath;
+
+            await _dbcontext.SaveChangesAsync();
+            // Return the file path
+            return filePath;
+        }
+
         #region private methods
 
 

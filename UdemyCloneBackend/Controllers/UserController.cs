@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Udemy.Core.DTOs;
 using Udemy.Core.Interfaces;
 using Udemy.Core.Models;
@@ -15,12 +16,13 @@ namespace UdemyApi.Controllers
     {
         private readonly IUserRepository _userService;
         private readonly IAuthService _authService;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
-        public UserController(IUserRepository usereService, IAuthService authService)
+        public UserController(IUserRepository usereService, IAuthService authService, IWebHostEnvironment hostEnvironment)
         {
             _userService = usereService;
             _authService = authService;
-
+            _hostEnvironment = hostEnvironment;
         }
 
         [HttpGet("get-user")]
@@ -121,5 +123,56 @@ namespace UdemyApi.Controllers
                 return StatusCode(500, "An error occurred while deleting the account.");
             }
         }
+
+
+
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadImage([FromHeader(Name = "token")] string token, IFormFile file)
+        {
+            try
+            {
+                // Check if user exists
+                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest("Invalid token or token expired.");
+                }
+
+                // Check if the file exists
+                if (file == null || file.Length == 0)
+                {
+                    return BadRequest("Invalid file.");
+                }
+
+                // Define the upload directory
+                var uploadDir = Path.Combine(_hostEnvironment.WebRootPath, "userImages");
+
+                // Create the directory if it doesn't exist
+                if (!Directory.Exists(uploadDir))
+                {
+                    Directory.CreateDirectory(uploadDir);
+                }
+
+                // Define the file path
+                var filePath = Path.Combine(uploadDir, $"{userId}.jpg");
+
+                // Save the file to the server
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                await _userService.UpdateUserImage(userId,filePath);
+
+                return Ok("Image uploaded successfully.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error uploading image: {ex.Message}");
+            }
+        }
+
+
     }
 }
