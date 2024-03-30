@@ -1,15 +1,13 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Udemy.Core.Interfaces;
-using Udemy.Core.Services;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
+using Udemy.Core.Services;
 using Udemy.EF.Repository;
 using UdemyCloneBackend.Helper;
 using UdemyCloneBackend.Services;
@@ -26,9 +24,9 @@ namespace UdemyApi
 
             // Add services to the container.
 
-    
 
-                
+
+
 
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
@@ -38,8 +36,8 @@ namespace UdemyApi
 
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
-            //builder.Services.AddScoped<ICourseDataRepository, CourseDataRepository>();
-            builder.Services.AddScoped<ICourseRepository,CourseRepository>();
+            builder.Services.AddScoped<ICourseDataRepository, CourseDataRepository>();
+            builder.Services.AddScoped<ICourseRepository, CourseRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<ICartRepository, CartRepository>();
 
@@ -73,9 +71,10 @@ namespace UdemyApi
             builder.Services.AddOpenApiDocument();
             builder.Services.AddDbContext<UdemyContext>(
 
-                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con2"))
-
+                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con1"),builder=>builder.EnableRetryOnFailure(  
+                    ))
                 );
+
 
             var app = builder.Build();
 

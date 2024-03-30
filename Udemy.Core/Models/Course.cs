@@ -12,9 +12,6 @@ namespace Udemy.Core.Models
         public bool Approved { get; set; }
 
         [Required]
-        public string Name { get; set; }
-
-        [Required]
         public DateTime DateCreated { get; set; }
         
         [Required]

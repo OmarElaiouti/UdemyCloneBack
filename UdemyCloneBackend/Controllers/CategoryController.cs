@@ -26,7 +26,7 @@ namespace Udemy.API.Controllers
             var parentCategorydto = new List<CategoryDto>();
 
 
-            foreach (var category in _repository.GetAll().Where(c => c.ParentId == null))
+            foreach (var category in _repository.GetAll2().Where(c => c.ParentId == null))
             {
                 var parentDto = new CategoryDto
                 {

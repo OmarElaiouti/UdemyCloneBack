@@ -8,7 +8,7 @@ using Udemy.Core.Models.UdemyContext;
 
 #nullable disable
 
-namespace UdemyCloneBackend.Migrations
+namespace Udemy.EF.Migrations
 {
     [DbContext(typeof(UdemyContext))]
     partial class UdemyContextModelSnapshot : ModelSnapshot

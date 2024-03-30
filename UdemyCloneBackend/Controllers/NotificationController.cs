@@ -18,7 +18,7 @@ namespace Udemy.API.Controllers
         [HttpGet("Notification")]
         public ActionResult<IEnumerable<Notification>> Notififcation()
         {
-            return _repository.GetAll().ToList();
+            return  _repository.GetAll2().ToList();
         }
 
     }

@@ -97,6 +97,15 @@ namespace Udemy.EF.Repository
             await _dbContext.SaveChangesAsync();
         }
 
+        public  IEnumerable<T> GetById(int Id, Func<T, bool> predicate)
+        {
+            return  _dbContext.Set<T>().Where(predicate).ToList();
+        }
 
+
+        IEnumerable<T> IBaseRepository<T>.GetAll2()
+        {
+            return _dbContext.Set<T>().ToList();
+        }
     }
 }
