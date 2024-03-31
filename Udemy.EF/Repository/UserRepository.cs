@@ -83,49 +83,67 @@ namespace Udemy.EF.Repository
 
         public async Task<Transaction> CreateAndProcessTransactionAsync(string userId)
         {
-            using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
+            return await _dbcontext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
             {
-                try
+                using (var dbTransaction = await _dbcontext.Database.BeginTransactionAsync())
                 {
-                    var user = await _dbcontext.Users
-                        .Include(u => u.Cart)
-                        .ThenInclude(c => c.CoursesInCart).ThenInclude(g=>g.Price)
-                        .FirstOrDefaultAsync(u => u.Id == userId);
-
-                    if (user == null)
+                    try
                     {
-                        throw new InvalidOperationException("User not found.");
+                        var user = await _dbcontext.Users
+                            .Include(u => u.Cart)
+                            .ThenInclude(c => c.CoursesInCart)
+                            .FirstOrDefaultAsync(u => u.Id == userId);
+
+                        if (user == null)
+                        {
+                            throw new InvalidOperationException("User not found.");
+                        }
+
+                        if (user.Cart == null)
+                        {
+                            throw new InvalidOperationException("User's cart not found.");
+                        }
+
+                        var purchasedCourses = user.Cart.CoursesInCart;
+
+                        if (purchasedCourses == null)
+                        {
+                            throw new InvalidOperationException("User's purchased courses not found.");
+                        }
+
+                        var amount = purchasedCourses.Sum(c => c.Price);
+
+                        var transaction = new Transaction
+                        {
+                            UserID = userId,
+                            Amount = amount,
+                            PurchasedCourses = purchasedCourses,
+                            Date = DateTime.UtcNow,
+                            Status = "Success" // Assuming status is always true for this scenario
+                        };
+
+                        user.Cart.CoursesInCart.Clear();
+                        _dbcontext.Transactions.Add(transaction);
+                        await _dbcontext.SaveChangesAsync();
+
+                        await ProcessTransactionAndEnrollmentAsync(transaction, userId);
+
+                        await SendTransactionNotificationAsync(userId, transaction);
+
+                        await dbTransaction.CommitAsync();
+
+                        return transaction;
                     }
-
-                    var transaction = new Transaction
+                    catch (Exception)
                     {
-                        UserID = userId,
-                        Amount = user.Cart.CoursesInCart.Sum(c=>c.Price),
-                        PurchasedCourses = user.Cart.CoursesInCart,
-                        Date = DateTime.UtcNow,
-                        Status = "Success" // Assuming status is always true for this scenario
-                    };
-
-                    user.Cart.CoursesInCart.Clear();
-                    _dbcontext.Transactions.Add(transaction);
-                    await _dbcontext.SaveChangesAsync();
-
-                    await ProcessTransactionAndEnrollmentAsync(transaction, userId);
-
-                    await SendTransactionNotificationAsync(userId, transaction);
-
-
-                    await dbTransaction.CommitAsync(); 
-
-                    return transaction;
+                        await dbTransaction.RollbackAsync();
+                        throw; // Re-throw exception for logging and further handling
+                    }
                 }
-                catch (Exception)
-                {
-                    await dbTransaction.RollbackAsync();
-                    throw; // Re-throw exception for logging and further handling
-                }
-            }
+            });
         }
+
+
 
         public async Task DeleteUserAsync(string userId)
         {
@@ -146,7 +164,6 @@ namespace Udemy.EF.Repository
             }
         }
 
-
         public async Task<string> UpdateUserImage(string userId,string filePath)
         {
 
@@ -157,9 +174,28 @@ namespace Udemy.EF.Repository
             return filePath;
         }
 
+        public async Task<IEnumerable<NotificationDto>> GetUserNotifications(string userId)
+        {
+
+            var user = await GetUserByIdAsync(userId);
+
+            var notifications = user.Notifications;           // Return the file path
+            return await MapToNotificationDtoAsync(notifications);
+        }
+
         #region private methods
 
-
+        private async Task<IEnumerable<NotificationDto>> MapToNotificationDtoAsync(IEnumerable<Notification> notifications)
+        {
+            // Since there are no asynchronous operations, we simply return the mapped results
+            return await Task.FromResult(notifications.Select(notification => new NotificationDto
+            {
+                ID = notification.NotificationID,
+                Content = notification.Content,
+                Date = notification.Timestamp.ToString("yyyy-MM-dd"), // Format date with year, month, and day only
+                Status = notification.Status
+            }).ToList());
+        }
         private async Task SendTransactionNotificationAsync(string userId, Transaction transaction)
         {
             // Example: Send notification to the user
@@ -252,7 +288,8 @@ namespace Udemy.EF.Repository
                 true,
             u => u.Cart,
             u => u.WishList,
-            u => u.Enrollments.Select(e => e.Course)
+            u => u.Enrollments.Select(e => e.Course),
+            u => u.Notifications
         );
 
             // Ensure the courses are materialized as a list
@@ -261,17 +298,21 @@ namespace Udemy.EF.Repository
 
         private UserDto MapToUserDto(User user)
         {
-            return  new UserDto
+            var userDto = new UserDto
             {
                 Id = user.Id,
-                Image = user.Image,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Biography = user.Biography,
-                Headline = user.Headline,
+                Image = user.Image ?? "",
+            FirstName = user.FirstName ?? "",
+                LastName = user.LastName ?? "",
+                Biography = user.Biography ?? "",
+                Headline = user.Headline ?? "",
                 Email = user.Email,
-                UserName = user.UserName,
-            }; 
+                UserName = user.UserName
+            };
+
+            // Assign default value to Image if user's Image is null
+
+            return userDto;
         }
 
         

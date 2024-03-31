@@ -12,8 +12,8 @@ using Udemy.Core.Models.UdemyContext;
 namespace Udemy.EF.Migrations
 {
     [DbContext(typeof(UdemyContext))]
-    [Migration("20240330160735_latest")]
-    partial class latest
+    [Migration("20240330232607_newDb")]
+    partial class newDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,21 +38,6 @@ namespace Udemy.EF.Migrations
                     b.HasIndex("CoursesInCartCourseID");
 
                     b.ToTable("CartCourse");
-                });
-
-            modelBuilder.Entity("CategoryCourse", b =>
-                {
-                    b.Property<int>("CategoriesCategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CoursesCourseID")
-                        .HasColumnType("int");
-
-                    b.HasKey("CategoriesCategoryId", "CoursesCourseID");
-
-                    b.HasIndex("CoursesCourseID");
-
-                    b.ToTable("CategoryCourse");
                 });
 
             modelBuilder.Entity("CourseTransaction", b =>
@@ -218,21 +203,6 @@ namespace Udemy.EF.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Subscription", b =>
-                {
-                    b.Property<string>("SubscribedToUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("SubscriberUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("SubscribedToUserId", "SubscriberUserId");
-
-                    b.HasIndex("SubscriberUserId");
-
-                    b.ToTable("Subscription");
-                });
-
             modelBuilder.Entity("Udemy.Core.Models.Announcement", b =>
                 {
                     b.Property<int>("AnnouncementID")
@@ -302,7 +272,7 @@ namespace Udemy.EF.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentId")
+                    b.Property<int?>("Parent")
                         .HasColumnType("int");
 
                     b.Property<int?>("Score")
@@ -314,7 +284,7 @@ namespace Udemy.EF.Migrations
 
                     b.HasKey("CategoryId");
 
-                    b.HasIndex("ParentId");
+                    b.HasIndex("Parent");
 
                     b.ToTable("Categories");
                 });
@@ -398,6 +368,9 @@ namespace Udemy.EF.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("CategoryID")
+                        .HasColumnType("int");
+
                     b.Property<string>("Cover")
                         .HasColumnType("nvarchar(max)");
 
@@ -442,6 +415,8 @@ namespace Udemy.EF.Migrations
                         .HasColumnType("bit");
 
                     b.HasKey("CourseID");
+
+                    b.HasIndex("CategoryID");
 
                     b.HasIndex("InstructorID");
 
@@ -894,33 +869,33 @@ namespace Udemy.EF.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("UserUser", b =>
+                {
+                    b.Property<string>("FollowersId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FollowingId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("FollowersId", "FollowingId");
+
+                    b.HasIndex("FollowingId");
+
+                    b.ToTable("UserUser");
+                });
+
             modelBuilder.Entity("CartCourse", b =>
                 {
                     b.HasOne("Udemy.Core.Models.Cart", null)
                         .WithMany()
                         .HasForeignKey("CartsCartID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Course", null)
                         .WithMany()
                         .HasForeignKey("CoursesInCartCourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("CategoryCourse", b =>
-                {
-                    b.HasOne("Udemy.Core.Models.Category", null)
-                        .WithMany()
-                        .HasForeignKey("CategoriesCategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Udemy.Core.Models.Course", null)
-                        .WithMany()
-                        .HasForeignKey("CoursesCourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -929,13 +904,13 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Course", null)
                         .WithMany()
                         .HasForeignKey("PurchasedCoursesCourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Transaction", null)
                         .WithMany()
                         .HasForeignKey("TransactionsTransactionID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -944,13 +919,13 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Course", null)
                         .WithMany()
                         .HasForeignKey("WishListCourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("WishListedId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -959,7 +934,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -968,7 +943,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -977,7 +952,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -986,13 +961,13 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -1001,22 +976,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Subscription", b =>
-                {
-                    b.HasOne("Udemy.Core.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("SubscribedToUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Udemy.Core.Models.User", null)
-                        .WithMany()
-                        .HasForeignKey("SubscriberUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
@@ -1025,7 +985,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany()
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1036,7 +996,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("User");
                 });
@@ -1045,8 +1005,8 @@ namespace Udemy.EF.Migrations
                 {
                     b.HasOne("Udemy.Core.Models.Category", "ParentCategory")
                         .WithMany("Subcategories")
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .HasForeignKey("Parent")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("ParentCategory");
                 });
@@ -1056,7 +1016,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany()
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1067,18 +1027,18 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Comment", "AnswerToComment")
                         .WithMany()
                         .HasForeignKey("AnswerTo")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany()
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Lesson", "Lesson")
                         .WithMany("Comments")
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("AnswerToComment");
 
@@ -1089,11 +1049,19 @@ namespace Udemy.EF.Migrations
 
             modelBuilder.Entity("Udemy.Core.Models.Course", b =>
                 {
+                    b.HasOne("Udemy.Core.Models.Category", "Category")
+                        .WithMany("Courses")
+                        .HasForeignKey("CategoryID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("Udemy.Core.Models.User", "Instructor")
                         .WithMany("CreatedCourses")
                         .HasForeignKey("InstructorID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("Instructor");
                 });
@@ -1103,23 +1071,23 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Certificate", "Certificate")
                         .WithMany()
                         .HasForeignKey("CertificateId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Enrollments")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Feedback", "Feedback")
                         .WithMany()
                         .HasForeignKey("FeedbackId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany("Enrollments")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Certificate");
@@ -1136,7 +1104,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany()
                         .HasForeignKey("EnrollmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1147,19 +1115,19 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "GiftedCourse")
                         .WithMany()
                         .HasForeignKey("GiftedCourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", "Receiver")
                         .WithMany()
                         .HasForeignKey("ReceiverID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.User", "Sender")
                         .WithMany()
                         .HasForeignKey("SenderID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("GiftedCourse");
@@ -1174,13 +1142,13 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.LessonProgress", "LessonProgress")
                         .WithMany()
                         .HasForeignKey("LessonProgressID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Section", "Section")
                         .WithMany("Lessons")
                         .HasForeignKey("SectionID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("LessonProgress");
@@ -1193,13 +1161,13 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany("UserProgress")
                         .HasForeignKey("EnrollmentID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Lesson", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1212,13 +1180,13 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Enrollment", "Enrollment")
                         .WithMany("UserNotes")
                         .HasForeignKey("EnrollmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Udemy.Core.Models.Lesson", "Lesson")
                         .WithMany("Notes")
                         .HasForeignKey("LessonID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
@@ -1231,7 +1199,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1242,7 +1210,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Objectives")
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1253,7 +1221,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Requirements")
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1264,7 +1232,7 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Course", "Course")
                         .WithMany("Sections")
                         .HasForeignKey("CourseID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -1275,12 +1243,12 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.User", "Admin")
                         .WithMany()
                         .HasForeignKey("AdminID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Admin");
@@ -1293,12 +1261,12 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Cart", null)
                         .WithMany("Transactions")
                         .HasForeignKey("CartID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Udemy.Core.Models.User", "User")
                         .WithMany("Transactions")
                         .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -1309,9 +1277,24 @@ namespace Udemy.EF.Migrations
                     b.HasOne("Udemy.Core.Models.Cart", "Cart")
                         .WithMany()
                         .HasForeignKey("CartID")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("Cart");
+                });
+
+            modelBuilder.Entity("UserUser", b =>
+                {
+                    b.HasOne("Udemy.Core.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("FollowersId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Udemy.Core.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("FollowingId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Udemy.Core.Models.Cart", b =>
@@ -1321,6 +1304,8 @@ namespace Udemy.EF.Migrations
 
             modelBuilder.Entity("Udemy.Core.Models.Category", b =>
                 {
+                    b.Navigation("Courses");
+
                     b.Navigation("Subcategories");
                 });
 

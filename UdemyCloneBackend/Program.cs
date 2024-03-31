@@ -21,6 +21,7 @@ namespace UdemyApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
             // Add services to the container.
 
@@ -41,7 +42,14 @@ namespace UdemyApi
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<ICartRepository, CartRepository>();
 
-
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                                  policy =>
+                                  {
+                                      policy.WithOrigins("http://localhost:4200");
+                                  });
+            });
 
 
             builder.Services.AddAuthentication(options =>
@@ -71,7 +79,7 @@ namespace UdemyApi
             builder.Services.AddOpenApiDocument();
             builder.Services.AddDbContext<UdemyContext>(
 
-                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con1"),builder=>builder.EnableRetryOnFailure(  
+                o => o.UseSqlServer(builder.Configuration.GetConnectionString("Con2"),builder=>builder.EnableRetryOnFailure(  
                     ))
                 );
 
@@ -86,6 +94,9 @@ namespace UdemyApi
             }
             app.UseDeveloperExceptionPage();
             app.UseCors(builder => builder.WithOrigins("http://localhost:4200").AllowAnyHeader());
+
+            app.UseCors(MyAllowSpecificOrigins);
+
             app.UseAuthentication();
             app.UseAuthorization();
 

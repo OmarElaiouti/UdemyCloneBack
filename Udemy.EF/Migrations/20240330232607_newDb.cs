@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Udemy.EF.Migrations
 {
     /// <inheritdoc />
-    public partial class latest : Migration
+    public partial class newDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,7 +32,7 @@ namespace Udemy.EF.Migrations
                     CategoryId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ParentId = table.Column<int>(type: "int", nullable: true),
+                    Parent = table.Column<int>(type: "int", nullable: true),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Score = table.Column<int>(type: "int", nullable: true)
                 },
@@ -40,11 +40,10 @@ namespace Udemy.EF.Migrations
                 {
                     table.PrimaryKey("PK_Categories", x => x.CategoryId);
                     table.ForeignKey(
-                        name: "FK_Categories_Categories_ParentId",
-                        column: x => x.ParentId,
+                        name: "FK_Categories_Categories_Parent",
+                        column: x => x.Parent,
                         principalTable: "Categories",
-                        principalColumn: "CategoryId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CategoryId");
                 });
 
             migrationBuilder.CreateTable(
@@ -64,8 +63,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -128,8 +126,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -179,8 +176,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -200,8 +196,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Carts_AspNetUsers_UserID",
                         column: x => x.UserID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -225,7 +220,8 @@ namespace Udemy.EF.Migrations
                     PromoStatus = table.Column<bool>(type: "bit", nullable: true),
                     Discount = table.Column<int>(type: "int", nullable: true),
                     DiscountDate = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    InstructorID = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    InstructorID = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CategoryID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -234,8 +230,12 @@ namespace Udemy.EF.Migrations
                         name: "FK_Courses_AspNetUsers_InstructorID",
                         column: x => x.InstructorID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Courses_Categories_CategoryID",
+                        column: x => x.CategoryID,
+                        principalTable: "Categories",
+                        principalColumn: "CategoryId");
                 });
 
             migrationBuilder.CreateTable(
@@ -257,32 +257,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Notifications_AspNetUsers_UserID",
                         column: x => x.UserID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Subscription",
-                columns: table => new
-                {
-                    SubscribedToUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    SubscriberUserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subscription", x => new { x.SubscribedToUserId, x.SubscriberUserId });
-                    table.ForeignKey(
-                        name: "FK_Subscription_AspNetUsers_SubscribedToUserId",
-                        column: x => x.SubscribedToUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Subscription_AspNetUsers_SubscriberUserId",
-                        column: x => x.SubscriberUserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -304,14 +279,34 @@ namespace Udemy.EF.Migrations
                         name: "FK_Supports_AspNetUsers_AdminID",
                         column: x => x.AdminID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Supports_AspNetUsers_UserID",
                         column: x => x.UserID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserUser",
+                columns: table => new
+                {
+                    FollowersId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    FollowingId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserUser", x => new { x.FollowersId, x.FollowingId });
+                    table.ForeignKey(
+                        name: "FK_UserUser_AspNetUsers_FollowersId",
+                        column: x => x.FollowersId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_UserUser_AspNetUsers_FollowingId",
+                        column: x => x.FollowingId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -333,14 +328,12 @@ namespace Udemy.EF.Migrations
                         name: "FK_Transactions_AspNetUsers_UserID",
                         column: x => x.UserID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Transactions_Carts_CartID",
                         column: x => x.CartID,
                         principalTable: "Carts",
-                        principalColumn: "CartID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CartID");
                 });
 
             migrationBuilder.CreateTable(
@@ -357,38 +350,12 @@ namespace Udemy.EF.Migrations
                         name: "FK_CartCourse_Carts_CartsCartID",
                         column: x => x.CartsCartID,
                         principalTable: "Carts",
-                        principalColumn: "CartID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CartID");
                     table.ForeignKey(
                         name: "FK_CartCourse_Courses_CoursesInCartCourseID",
                         column: x => x.CoursesInCartCourseID,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CategoryCourse",
-                columns: table => new
-                {
-                    CategoriesCategoryId = table.Column<int>(type: "int", nullable: false),
-                    CoursesCourseID = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CategoryCourse", x => new { x.CategoriesCategoryId, x.CoursesCourseID });
-                    table.ForeignKey(
-                        name: "FK_CategoryCourse_Categories_CategoriesCategoryId",
-                        column: x => x.CategoriesCategoryId,
-                        principalTable: "Categories",
-                        principalColumn: "CategoryId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_CategoryCourse_Courses_CoursesCourseID",
-                        column: x => x.CoursesCourseID,
-                        principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -405,14 +372,12 @@ namespace Udemy.EF.Migrations
                         name: "FK_CourseUser_AspNetUsers_WishListedId",
                         column: x => x.WishListedId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_CourseUser_Courses_WishListCourseID",
                         column: x => x.WishListCourseID,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -433,20 +398,17 @@ namespace Udemy.EF.Migrations
                         name: "FK_Gifts_AspNetUsers_ReceiverID",
                         column: x => x.ReceiverID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Gifts_AspNetUsers_SenderID",
                         column: x => x.SenderID,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Gifts_Courses_GiftedCourseID",
                         column: x => x.GiftedCourseID,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -465,8 +427,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Objectives_Courses_CourseID",
                         column: x => x.CourseID,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -485,8 +446,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Requirements_Courses_CourseID",
                         column: x => x.CourseID,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -505,8 +465,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Sections_Courses_CourseID",
                         column: x => x.CourseID,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -523,14 +482,12 @@ namespace Udemy.EF.Migrations
                         name: "FK_CourseTransaction_Courses_PurchasedCoursesCourseID",
                         column: x => x.PurchasedCoursesCourseID,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                     table.ForeignKey(
                         name: "FK_CourseTransaction_Transactions_TransactionsTransactionID",
                         column: x => x.TransactionsTransactionID,
                         principalTable: "Transactions",
-                        principalColumn: "TransactionID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "TransactionID");
                 });
 
             migrationBuilder.CreateTable(
@@ -567,8 +524,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Comments_Comments_AnswerTo",
                         column: x => x.AnswerTo,
                         principalTable: "Comments",
-                        principalColumn: "CommentID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CommentID");
                 });
 
             migrationBuilder.CreateTable(
@@ -590,20 +546,17 @@ namespace Udemy.EF.Migrations
                         name: "FK_Enrollments_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Enrollments_Certificates_CertificateId",
                         column: x => x.CertificateId,
                         principalTable: "Certificates",
-                        principalColumn: "CertificateID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CertificateID");
                     table.ForeignKey(
                         name: "FK_Enrollments_Courses_CourseId",
                         column: x => x.CourseId,
                         principalTable: "Courses",
-                        principalColumn: "CourseID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -623,8 +576,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Feedbacks_Enrollments_EnrollmentId",
                         column: x => x.EnrollmentId,
                         principalTable: "Enrollments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -644,8 +596,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_LessonProgresses_Enrollments_EnrollmentID",
                         column: x => x.EnrollmentID,
                         principalTable: "Enrollments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -670,14 +621,12 @@ namespace Udemy.EF.Migrations
                         name: "FK_Lessons_LessonProgresses_LessonProgressID",
                         column: x => x.LessonProgressID,
                         principalTable: "LessonProgresses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Lessons_Sections_SectionID",
                         column: x => x.SectionID,
                         principalTable: "Sections",
-                        principalColumn: "SectionID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "SectionID");
                 });
 
             migrationBuilder.CreateTable(
@@ -697,14 +646,12 @@ namespace Udemy.EF.Migrations
                         name: "FK_Notes_Enrollments_EnrollmentId",
                         column: x => x.EnrollmentId,
                         principalTable: "Enrollments",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Notes_Lessons_LessonID",
                         column: x => x.LessonID,
                         principalTable: "Lessons",
-                        principalColumn: "LessonID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "LessonID");
                 });
 
             migrationBuilder.CreateIndex(
@@ -767,14 +714,9 @@ namespace Udemy.EF.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Categories_ParentId",
+                name: "IX_Categories_Parent",
                 table: "Categories",
-                column: "ParentId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_CategoryCourse_CoursesCourseID",
-                table: "CategoryCourse",
-                column: "CoursesCourseID");
+                column: "Parent");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Certificates_EnrollmentID",
@@ -795,6 +737,11 @@ namespace Udemy.EF.Migrations
                 name: "IX_Comments_LessonID",
                 table: "Comments",
                 column: "LessonID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Courses_CategoryID",
+                table: "Courses",
+                column: "CategoryID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Courses_InstructorID",
@@ -902,11 +849,6 @@ namespace Udemy.EF.Migrations
                 column: "CourseID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Subscription_SubscriberUserId",
-                table: "Subscription",
-                column: "SubscriberUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Supports_AdminID",
                 table: "Supports",
                 column: "AdminID");
@@ -926,85 +868,80 @@ namespace Udemy.EF.Migrations
                 table: "Transactions",
                 column: "UserID");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_UserUser_FollowingId",
+                table: "UserUser",
+                column: "FollowingId");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_Announcements_Courses_CourseID",
                 table: "Announcements",
                 column: "CourseID",
                 principalTable: "Courses",
-                principalColumn: "CourseID",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "CourseID");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AspNetUserClaims_AspNetUsers_UserId",
                 table: "AspNetUserClaims",
                 column: "UserId",
                 principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AspNetUserLogins_AspNetUsers_UserId",
                 table: "AspNetUserLogins",
                 column: "UserId",
                 principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AspNetUserRoles_AspNetUsers_UserId",
                 table: "AspNetUserRoles",
                 column: "UserId",
                 principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_AspNetUsers_Carts_CartID",
                 table: "AspNetUsers",
                 column: "CartID",
                 principalTable: "Carts",
-                principalColumn: "CartID",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "CartID");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Certificates_Enrollments_EnrollmentID",
                 table: "Certificates",
                 column: "EnrollmentID",
                 principalTable: "Enrollments",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Comments_Enrollments_EnrollmentID",
                 table: "Comments",
                 column: "EnrollmentID",
                 principalTable: "Enrollments",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Comments_Lessons_LessonID",
                 table: "Comments",
                 column: "LessonID",
                 principalTable: "Lessons",
-                principalColumn: "LessonID",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "LessonID");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Enrollments_Feedbacks_FeedbackId",
                 table: "Enrollments",
                 column: "FeedbackId",
                 principalTable: "Feedbacks",
-                principalColumn: "FeedbackID",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "FeedbackID");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_LessonProgresses_Lessons_LessonID",
                 table: "LessonProgresses",
                 column: "LessonID",
                 principalTable: "Lessons",
-                principalColumn: "LessonID",
-                onDelete: ReferentialAction.Cascade);
+                principalColumn: "LessonID");
         }
 
         /// <inheritdoc />
@@ -1064,9 +1001,6 @@ namespace Udemy.EF.Migrations
                 name: "CartCourse");
 
             migrationBuilder.DropTable(
-                name: "CategoryCourse");
-
-            migrationBuilder.DropTable(
                 name: "Comments");
 
             migrationBuilder.DropTable(
@@ -1091,22 +1025,22 @@ namespace Udemy.EF.Migrations
                 name: "Requirements");
 
             migrationBuilder.DropTable(
-                name: "Subscription");
-
-            migrationBuilder.DropTable(
                 name: "Supports");
 
             migrationBuilder.DropTable(
-                name: "AspNetRoles");
+                name: "UserUser");
 
             migrationBuilder.DropTable(
-                name: "Categories");
+                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "Transactions");
 
             migrationBuilder.DropTable(
                 name: "Courses");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

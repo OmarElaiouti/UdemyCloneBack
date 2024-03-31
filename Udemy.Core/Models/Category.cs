@@ -13,7 +13,7 @@ namespace Udemy.Core.Models
 
 
         [ForeignKey("ParentCategory")]
-        public int? ParentId { get; set; }
+        public int? Parent { get; set; }
 
         public virtual Category ParentCategory { get; set; }
 
@@ -23,7 +23,7 @@ namespace Udemy.Core.Models
 
         public virtual ICollection<Category> Subcategories { get; set; }
 
-        public virtual ICollection<Course> Courses { get; set; }
+        public virtual ICollection<Course>? Courses { get; set; }
 
     }
 }

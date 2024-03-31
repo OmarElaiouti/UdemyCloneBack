@@ -25,7 +25,7 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("searched-courses")]
-        public async Task<ActionResult<List<SearchCourseDto>>> GetSearchCoursesByNameAsync([FromQuery] string searchString)
+        public async Task<ActionResult<List<CourseLongDto>>> GetSearchCoursesByNameAsync([FromQuery] string searchString)
         {
             try
             {
@@ -39,11 +39,11 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("saved-search")]
-        public async Task<ActionResult<List<CourseCardWithRateDto>>> GetSavedSearchCoursesByNameAsync([FromQuery] string searchHitory)
+        public async Task<ActionResult<List<CourseWithObjectivesDto>>> GetSavedSearchCoursesByNameAsync([FromQuery] string searchHitory)
         {
             try
             {
-                var courses = await _courseService.SearchCoursesByNameAsync(searchHitory,5,true);
+                var courses = await _courseService.SearchCoursesByNameAsync(searchHitory,5);
                 return Ok(courses);
             }
             catch (Exception ex)
@@ -53,7 +53,7 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("courses-in-cart")]
-        public async Task<ActionResult<List<CourseCardWithLevelDto>>> GetCoursesInCartByUserId([FromHeader(Name = "token")] string token)
+        public async Task<ActionResult<List<CourseCardWithLevelDto>>> GetCoursesInCartByUserId([FromHeader(Name = "Authorization")] string token)
         {
             try
             {
@@ -74,14 +74,14 @@ namespace UdemyApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, $"An error occurred: {ex}");
             }
         }
 
 
 
         [HttpGet("courses-in-wishlist")]
-        public async Task<ActionResult<List<CourseCardWithRateDto>>> GetCoursesInWishlistlistById([FromHeader(Name = "token")] string token)
+        public async Task<ActionResult<List<CourseLongDto>>> GetCoursesInWishlistlistById([FromHeader(Name = "Authorization")] string token)
         {
             try
             {
@@ -107,7 +107,7 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("enrolled-in")]
-        public async Task<ActionResult<List<CourseCardWithRateDto>>> GetEnrolledInCoursesById([FromHeader(Name = "token")] string token)
+        public async Task<ActionResult<List<CourseLongDto>>> GetEnrolledInCoursesById([FromHeader(Name = "Authorization")] string token)
         {
             try
             {
@@ -136,11 +136,11 @@ namespace UdemyApi.Controllers
 
 
         [HttpGet("random")]
-        public async Task<IActionResult> GetRandomCourses()
+        public async Task<ActionResult<List<CourseWithObjectivesDto>>> GetRandomCourses()
         {
             try
             {
-                var randomCourses = await _courseService.GetRandomCourses(4);
+                var randomCourses = await _courseService.GetRandomCourses(6);
                 return Ok(randomCourses);
             }
             catch (Exception ex)
@@ -150,11 +150,11 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("top-rated")]
-        public async Task<IActionResult> GetTopRatedCourses()
+        public async Task<ActionResult<List<CourseWithObjectivesDto>>> GetTopRatedCourses()
         {
             try
             {
-                var topRatedCourses = await _courseService.GetTopRatedCourses(4); // Get top 10 rated courses
+                var topRatedCourses = await _courseService.GetTopRatedCourses(6); // Get top 10 rated courses
                 return Ok(topRatedCourses);
             }
             catch (Exception ex)
@@ -164,7 +164,21 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("by-category")]
-        public async Task<IActionResult> GetCoursesByCategory(string categoryName, [FromQuery] int? num)
+        public async Task<ActionResult<List<CourseLongDto>>> GetCoursesByCategory([FromQuery] string categoryName, [FromQuery] int? num)
+        {
+            try
+            {
+                var courses = await _courseService.GetCoursesByCategory(categoryName, num);
+                return Ok(courses);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+        }
+
+        [HttpGet("by-category-with-objectives")]
+        public async Task<ActionResult<List<CourseWithObjectivesDto>>> GetCoursesWithObjectivesByCategory([FromQuery] string categoryName, [FromQuery] int? num)
         {
             try
             {
@@ -179,10 +193,8 @@ namespace UdemyApi.Controllers
 
 
 
-
-        [HttpPost]
-        [Route("addCourseToCart")]
-        public async Task<IActionResult> AddCourseToCart([FromHeader(Name = "token")] string token,[FromBody] int courseId)
+        [HttpGet("add-course-to-cart/{courseId}")]
+        public async Task<IActionResult> AddCourseToCart([FromHeader(Name = "Authorization")] string token,int courseId)
         {
             string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
 
@@ -193,18 +205,17 @@ namespace UdemyApi.Controllers
 
             try
             {
-                await _courseService.AddCourseToCartByUserIdAsync(userId, courseId);
-                return Ok("Course added to cart successfully.");
+                var addedCourse = await _courseService.AddCourseToCartByUserIdAsync(userId, courseId);
+                return Ok(addedCourse);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, $"An error occurred: {ex}");
             }
         }
 
-        [HttpPost]
-        [Route("addCourseToWishlist")]
-        public async Task<IActionResult> AddCourseToWishlist([FromHeader(Name = "token")] string token, [FromBody] int courseId)
+        [HttpGet("addCourseToWishlist/{courseId}")]
+        public async Task<IActionResult> AddCourseToWishlist([FromHeader(Name = "Authorization")] string token, int courseId)
         {
             string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
 
@@ -215,12 +226,12 @@ namespace UdemyApi.Controllers
 
             try
             {
-                await _courseService.AddCourseToWishlistByUserIdAsync(userId, courseId);
-                return Ok("Course added to cart successfully.");
+                var addedCourse = await _courseService.AddCourseToWishlistByUserIdAsync(userId, courseId);
+                return Ok(addedCourse);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, $"{ex}");
             }
         }
 

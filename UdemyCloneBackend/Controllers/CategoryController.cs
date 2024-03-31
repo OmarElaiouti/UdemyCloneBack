@@ -26,7 +26,7 @@ namespace Udemy.API.Controllers
             var parentCategorydto = new List<CategoryDto>();
 
 
-            foreach (var category in _repository.GetAll2().Where(c => c.ParentId == null))
+            foreach (var category in _repository.GetAll2().Where(c => c.Parent == null))
             {
                 var parentDto = new CategoryDto
                 {
@@ -44,7 +44,7 @@ namespace Udemy.API.Controllers
         {
             var categoryDto = new List<CategoryDto>();
 
-            var sub = _repository.GetById(id, c => c.ParentId == id);
+            var sub = _repository.GetById(id, c => c.Parent == id);
 
             foreach (var category in sub)
             {

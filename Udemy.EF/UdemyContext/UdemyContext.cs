@@ -63,20 +63,21 @@ namespace Udemy.Core.Models.UdemyContext
                 .WithMany(u => u.CreatedCourses)
                 .HasForeignKey(c => c.InstructorID)
                 .IsRequired();
-            modelBuilder.Entity<User>()
-            .HasMany(u => u.Followers)
-            .WithMany(u => u.Following)
-            .UsingEntity<Dictionary<string, object>>(
-                "Subscription",
-                j => j.HasOne<User>().WithMany().HasForeignKey("SubscriberUserId"),
-                j => j.HasOne<User>().WithMany().HasForeignKey("SubscribedToUserId")
-            );
+           
 
-        
+      
+
+
+            // Specify ON DELETE NO ACTION for the ParentId foreign key
+     
+
+            // Configure the relationship between Category and Courses
+
+
 
             foreach (var relationship in modelBuilder.Model.GetEntityTypes().SelectMany(e => e.GetForeignKeys()))
             {
-                relationship.DeleteBehavior = DeleteBehavior.Cascade;
+                relationship.DeleteBehavior = DeleteBehavior.NoAction;
             }
         }
     }

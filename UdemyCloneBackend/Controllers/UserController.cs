@@ -26,7 +26,7 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("get-user")]
-        public async Task<ActionResult<List<UserDto>>> GetCoursesInCartByUserId([FromHeader(Name = "token")] string token)
+        public async Task<ActionResult<UserDto>> GetUser([FromHeader(Name = "Authorization")] string token)
         {
             try
             {
@@ -47,12 +47,12 @@ namespace UdemyApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred: {ex}");
+                return StatusCode(500, ex);
             }
         }
 
         [HttpPut("edit-user-data")]
-        public async Task<IActionResult> UpdateUser([FromHeader(Name = "token")] string token, [FromBody] UserDto userDto)
+        public async Task<IActionResult> UpdateUser([FromHeader(Name = "Authorization")] string token, [FromBody] UserDto userDto)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace UdemyApi.Controllers
         }
 
         [HttpPost("create-transaction")]
-        public async Task<IActionResult> CreateEnrollment([FromHeader(Name = "token")] string token)
+        public async Task<IActionResult> CreateEnrollment([FromHeader(Name = "Authorization")] string token)
         {
             try
             {
@@ -89,17 +89,17 @@ namespace UdemyApi.Controllers
                 // Create transaction and process it
                 var transaction = await _userService.CreateAndProcessTransactionAsync(userId);
 
-                return Ok();
+                return Ok(new { transaction.Status ,transaction.Date});
             }
             catch (Exception ex)
             {
                 // Handle exception (e.g., return error response)
-                return StatusCode(500, "Failed to create enrollment: " + ex.Message);
+                return StatusCode(500, "Failed to create enrollment: " + ex);
             }
         }
 
         [HttpDelete("delete-account")]
-        public async Task<IActionResult> DeleteAccount([FromHeader(Name = "token")] string token)
+        public async Task<IActionResult> DeleteAccount([FromHeader(Name = "Authorization")] string token)
         {
             try
             {
@@ -127,7 +127,7 @@ namespace UdemyApi.Controllers
 
 
         [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadImage([FromHeader(Name = "token")] string token, IFormFile file)
+        public async Task<IActionResult> UploadImage([FromHeader(Name = "Authorization")] string token, IFormFile file)
         {
             try
             {
@@ -173,6 +173,26 @@ namespace UdemyApi.Controllers
             }
         }
 
+        [HttpGet("user-notifications")]
+        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUserNotifications([FromHeader(Name = "Authorization")] string token)
+        {
+            try
+            {
+                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest("Invalid token or token expired.");
+                }
+                var notifications = await _userService.GetUserNotifications(userId);
+                return Ok(notifications);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "An error occurred while retrieving user notifications.");
+            }
+        }
 
     }
 }

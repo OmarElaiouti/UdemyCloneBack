@@ -22,7 +22,12 @@ namespace Udemy.EF.Repository
         public async Task<Cart> GetCartByUserIdAsync(string userId)
         {
             var carts = await GetAllWithIncluded();
-            return carts.FirstOrDefault(c => c.UserID == userId);
+            var cart = carts.FirstOrDefault(c => c.UserID == userId);
+
+            if(cart ==null) { return null; }
+
+            return cart;
+
         }
 
         

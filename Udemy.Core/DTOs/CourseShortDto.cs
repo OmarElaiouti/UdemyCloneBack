@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Udemy.Core.DTOs
 {
-    public class CourseCardWithRateDto
+    public class CourseShortDto
     {
         public int ID { get; set; }
         public string Image { get; set; }

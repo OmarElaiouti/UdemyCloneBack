@@ -47,11 +47,13 @@ namespace Udemy.Core.Models
         [ForeignKey("Instructor")]
         public string InstructorID { get; set; }
 
+        [ForeignKey("Category")]
+        public int CategoryID { get; set; }
         public virtual User Instructor { get; set; }
 
         public virtual ICollection<Cart>? Carts { get; set; }
         public virtual ICollection<User>? WishListed { get; set; }
-        public virtual ICollection<Category> Categories { get; set; }
+        public virtual Category Category { get; set; }
         public virtual ICollection<Objective>? Objectives { get; set; }
         public virtual ICollection<Enrollment>? Enrollments { get; set; }
         public virtual ICollection<Section>? Sections { get; set; }

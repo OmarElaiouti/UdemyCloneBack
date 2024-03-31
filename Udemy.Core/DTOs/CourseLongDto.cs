@@ -7,7 +7,7 @@ using Udemy.Core.Models;
 
 namespace Udemy.Core.DTOs
 {
-    public class SearchCourseDto
+    public class CourseLongDto
     {
         public int ID { get; set; }
         public string Name { get; set; }
