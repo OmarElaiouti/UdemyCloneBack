@@ -29,9 +29,6 @@ namespace Udemy.Core.Models
         // Type of content (e.g., video, text, audio, etc.)
         public string Type { get; set; }
 
-        // Whether the content is allowed or restricted
-        public bool Allowed { get; set; }
-
         // Navigation property to the Section
         public virtual Section Section { get; set; }
 

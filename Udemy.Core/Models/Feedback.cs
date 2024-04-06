@@ -17,5 +17,8 @@ namespace Udemy.Core.Models
 
         public string Comment { get; set; }
 
+        public DateTime Date { get; set; }
+
+
     }
 }

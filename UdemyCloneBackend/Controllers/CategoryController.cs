@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Udemy.Core.DTOs;
 using Udemy.Core.Interfaces;
 using Udemy.Core.Models;
-using UdemyUOW.Core.DTOs;
-using UdemyUOW.Core.Interfaces;
 
 namespace Udemy.API.Controllers
 {
@@ -12,76 +11,47 @@ namespace Udemy.API.Controllers
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly IBaseRepository<Category> _repository;
+        private readonly ICategoryRepository _categoryService;
 
-        public CategoryController(IBaseRepository<Category> repository)
+        public CategoryController(ICategoryRepository categoryService)
         {
-            _repository = repository;
+            _categoryService = categoryService;
 
         }
 
-        [HttpGet("Category")]
-        public ActionResult<IEnumerable<Category>> GetCategoriesWithNullParent()
+        [HttpGet("get-categories")]
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
         {
-            var parentCategorydto = new List<CategoryDto>();
-
-
-            foreach (var category in _repository.GetAll2().Where(c => c.Parent == null))
+            try
             {
-                var parentDto = new CategoryDto
-                {
-                    ParentId = category.CategoryId,
-                    Name = category.Name,
-                };
-                parentCategorydto.Add(parentDto);
+                var categories = await _categoryService.GetCategories();
+                return Ok(categories);
             }
-
-            return Ok(parentCategorydto);
-        }
-
-        [HttpGet("SubCategory")]
-        public ActionResult<IEnumerable<Category>> GetSubCategory(int id)
-        {
-            var categoryDto = new List<CategoryDto>();
-
-            var sub = _repository.GetById(id, c => c.Parent == id);
-
-            foreach (var category in sub)
+            catch (Exception ex)
             {
-                var subcategory = new CategoryDto
-                {
-                    ParentId = category.CategoryId,
-                    Name = category.Name,
-                };
-
-                categoryDto.Add(subcategory);
+                // Log the exception
+                return StatusCode(500, "An error occurred while retrieving categories.");
             }
-            return Ok(categoryDto);
         }
 
-        //[HttpGet("Topic")]
-        //public ActionResult<IEnumerable<CategoryDto>> GetTopic(int id)
-        //{
-        //    var categoryDtoList = new List<CategoryDto>();
+        [HttpGet("{parentName}/subcategories-or-topics")]
+        public async Task<IActionResult> GetSubCategoriesOrTopicsByParentName(string parentName)
+        {
+            try
+            {
+                var subCategoriesOrTopics = await _categoryService.GetSubCategoriesOrTopicsByParentName(parentName);
+                if (subCategoriesOrTopics == null)
+                    return NotFound($"Parent category '{parentName}' not found.");
 
-        //    var topics = _repository.GetEntitiesByCondition(
-        //        filterCondition: category => category.ParentId == id,
-        //        orderBy: c => c.Score descending
-        //    );
+                return Ok(subCategoriesOrTopics);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "An error occurred while retrieving subcategories/topics.");
+            }
+        }
 
-        //    foreach (var topic in topics)
-        //    {
-        //        var categoryDto = new CategoryDto
-        //        {
-        //            ParentId = topic.CategoryId, 
-        //            Name = topic.Name
-        //        };
-
-        //        categoryDtoList.Add(categoryDto);
-        //    }
-
-        //    return Ok(categoryDtoList);
-        //}
 
 
 

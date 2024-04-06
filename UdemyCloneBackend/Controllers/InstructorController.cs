@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Udemy.Core.Models;
-using UdemyUOW.Core.DTOs;
-using UdemyUOW.Core.Interfaces;
+using Udemy.Core.DTOs;
+using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces;
 
 namespace Udemy.API.Controllers
 {
@@ -26,29 +27,29 @@ namespace Udemy.API.Controllers
             return Ok(instructors);
         }
 
-        [HttpGet("instructor/{courseId}")]
-        public IActionResult GetInstructorByCourseId(int courseId)
-        {
-            var instructor = _instructorRepository.GetInstructorByCourseId(courseId);
+        //[HttpGet("instructor/{courseId}")]
+        //public IActionResult GetInstructorByCourseId(int courseId)
+        //{
+        //    var instructor = _instructorRepository.GetInstructorByCourseId(courseId);
 
-            if (instructor == null)
-            {
-                return NotFound();
-            }
+        //    if (instructor == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            var StudentCount = _instructorRepository.GetStudentsCountForCourse(courseId);
-            var instructorDto = new InstructorcourseDto
-            {
-                InstructorId = instructor.Id,
-                CourseName = instructor.CreatedCourses?.FirstOrDefault(c => c.CourseID == courseId)?.Name,
-                InstructorName = instructor.UserName,
-                InstructorImage = instructor.Image,
-                CoursesCount = instructor.CreatedCourses?.Count() ?? 0,
-                StudentsCount = StudentCount
-            };
+        //    var StudentCount = _instructorRepository.GetStudentsCountForCourse(courseId);
+        //    var instructorDto = new InstructorcourseDto
+        //    {
+        //        InstructorId = instructor.Id,
+        //        CourseName = instructor.CreatedCourses?.FirstOrDefault(c => c.CourseID == courseId)?.Name,
+        //        InstructorName = instructor.UserName,
+        //        InstructorImage = instructor.Image,
+        //        CoursesCount = instructor.CreatedCourses?.Count() ?? 0,
+        //        StudentsCount = StudentCount
+        //    };
 
-            return Ok(instructorDto);
-        }
+        //    return Ok(instructorDto);
+        //}
 
 
 

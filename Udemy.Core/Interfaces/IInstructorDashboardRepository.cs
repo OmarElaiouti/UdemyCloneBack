@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Udemy.Core.DTOs
+namespace Udemy.Core.Interfaces
 {
-    public class ObjectiveDto
+    public interface IInstructorDashboardRepository
     {
-        public int ID { get; set; }
-        public string Content { get; set; }
     }
 }

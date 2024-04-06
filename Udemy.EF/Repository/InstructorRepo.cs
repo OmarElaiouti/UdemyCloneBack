@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
 using Udemy.EF.Repository;
-using UdemyUOW.Core.Interfaces;
+using Udemy.Core.Interfaces;
 
-namespace UdemyUOW.EF.Repository
+namespace Udemy.EF.Repository
 {
     public class InstructorRepository : BaseRepository<User>, IInstructorRepository
     {

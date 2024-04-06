@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Udemy.Core.DTOs;
+using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.Models;
 
 namespace Udemy.Core.Interfaces
@@ -23,7 +23,10 @@ namespace Udemy.Core.Interfaces
         Task<Course> GetCourseById(int id);
         Task<CourseShortDto> AddCourseToCartByUserIdAsync(string userId, int courseId);
         Task<CourseShortDto> AddCourseToWishlistByUserIdAsync(string userId, int courseId);
-
+        Task<IEnumerable<CourseCardWithLevelDto>> GetCoursesByIds(List<int> itemIds);
         Task<IEnumerable<CourseWithObjectivesDto>> GetCoursesByCategoryWithObjctives(string categoryName, int? count);
+        Task<bool> RemoveCourseFromCartByUserIdAsync(string userId, int courseId);
+        Task<bool> RemoveCourseFromWishlistByUserIdAsync(string userId, int courseId);
+
     }
 }

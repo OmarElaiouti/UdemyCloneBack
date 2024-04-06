@@ -10,15 +10,14 @@ namespace Udemy.Core.Models
         public int CommentID { get; set; }
 
         [Required]
-        public string Type { get; set; }
+        public bool isReply { get; set; }
 
         [ForeignKey("Enrollment")]
         public int EnrollmentID { get; set; }
-        public virtual Enrollment Enrollment { get; set; }
 
-        [ForeignKey("Lesson")]
-        public int? LessonID { get; set; }
-        public virtual Lesson Lesson { get; set; }
+        [ForeignKey("Course")]
+        public int CourseID { get; set; }
+        public virtual Course Course { get; set; }
 
         [ForeignKey("AnswerToComment")]
         public int? AnswerTo { get; set; }
@@ -29,5 +28,10 @@ namespace Udemy.Core.Models
 
         [Required]
         public string Content { get; set; }
+
+        public bool isUpdated { get; set; }
+        public virtual Enrollment Enrollment { get; set; }
+
+
     }
 }

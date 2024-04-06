@@ -11,9 +11,6 @@ namespace Udemy.Core.Models
         [ForeignKey("Enrollment")]
         public int EnrollmentID { get; set; }
 
-        [Required]
-        public string CertificateFile { get; set; }
-
         // Navigation property to the User
         public virtual Enrollment Enrollment { get; set; }
 

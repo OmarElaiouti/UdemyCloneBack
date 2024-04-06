@@ -173,26 +173,7 @@ namespace UdemyApi.Controllers
             }
         }
 
-        [HttpGet("user-notifications")]
-        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUserNotifications([FromHeader(Name = "Authorization")] string token)
-        {
-            try
-            {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
-
-                if (string.IsNullOrEmpty(userId))
-                {
-                    return BadRequest("Invalid token or token expired.");
-                }
-                var notifications = await _userService.GetUserNotifications(userId);
-                return Ok(notifications);
-            }
-            catch (Exception ex)
-            {
-                // Log the exception
-                return StatusCode(500, "An error occurred while retrieving user notifications.");
-            }
-        }
+        
 
     }
 }

@@ -14,10 +14,10 @@ namespace Udemy.Core.Interfaces
         Task<IEnumerable<T>> GetAll(bool includeRelatedEntities = false, params Expression<Func<T, object>>[] includeProperties);
 
         Task Update(T entity);
-
+        Task<T> GetById(object idValue, string idPropertyName, bool includeRelatedEntities = false, params Expression<Func<T, object>>[] includeProperties);
         IEnumerable<T> GetById(int Id, Func<T, bool> predicate);
 
-        IEnumerable<T> GetAll2();
+        //IEnumerable<T> GetAll2();
 
 
     }

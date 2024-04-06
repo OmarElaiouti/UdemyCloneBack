@@ -44,6 +44,48 @@ namespace Udemy.EF.Repository
             }
         }
 
+        public async Task<T> GetById(object idValue, string idPropertyName, bool includeRelatedEntities = false, params Expression<Func<T, object>>[] includeProperties)
+        {
+            try
+            {
+                IQueryable<T> query = _dbContext.Set<T>().Where(GetIdPredicate(idValue, idPropertyName));
+
+                if (includeRelatedEntities && includeProperties != null && includeProperties.Any())
+                {
+                    query = IncludeRelatedEntities(query, includeProperties);
+                }
+
+                return await query.FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                // Handle exception appropriately, e.g., log the error
+                Console.WriteLine($"An error occurred while fetching the entity by Id: {ex.Message}");
+                throw; // Rethrow the exception for further handling
+            }
+        }
+
+
+        public async Task Update(T entity)
+        {
+            _dbContext.Entry(entity).State = EntityState.Modified;
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public IEnumerable<T> GetById(int Id, Func<T, bool> predicate)
+        {
+            return _dbContext.Set<T>().Where(predicate).ToList();
+        }
+
+
+        //IEnumerable<T> IBaseRepository<T>.GetAll2()
+        //{
+        //    return _dbContext.Set<T>().ToList();
+        //}
+
+
+        #region private methods
+
         private IQueryable<T> IncludeRelatedEntities(IQueryable<T> query, params Expression<Func<T, object>>[] includeProperties)
         {
             foreach (var includeProperty in includeProperties)
@@ -89,23 +131,15 @@ namespace Udemy.EF.Repository
             return !string.IsNullOrEmpty(parentMemberName) ? $"{parentMemberName}.{memberName}" : memberName;
         }
 
-
-
-        public async Task Update(T entity)
+        private Expression<Func<T, bool>> GetIdPredicate(object idValue, string idPropertyName)
         {
-            _dbContext.Entry(entity).State = EntityState.Modified;
-            await _dbContext.SaveChangesAsync();
+            var parameter = Expression.Parameter(typeof(T), "x");
+            var property = Expression.Property(parameter, idPropertyName);
+            var constant = Expression.Constant(idValue);
+            var equalExpression = Expression.Equal(property, constant);
+            return Expression.Lambda<Func<T, bool>>(equalExpression, parameter);
         }
 
-        public  IEnumerable<T> GetById(int Id, Func<T, bool> predicate)
-        {
-            return  _dbContext.Set<T>().Where(predicate).ToList();
-        }
-
-
-        IEnumerable<T> IBaseRepository<T>.GetAll2()
-        {
-            return _dbContext.Set<T>().ToList();
-        }
+        #endregion
     }
 }

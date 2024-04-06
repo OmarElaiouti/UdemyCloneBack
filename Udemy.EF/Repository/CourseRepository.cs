@@ -6,6 +6,8 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Udemy.Core.DTOs;
+using Udemy.Core.DTOs.CourseDtos;
+using Udemy.Core.DTOs.CoursePartsDtos;
 using Udemy.Core.Interfaces;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
@@ -13,7 +15,7 @@ using Udemy.EF.Repository;
 
 namespace Udemy.Core.Services
 {
-    
+
     public class CourseRepository:BaseRepository<Course>, ICourseRepository
     {
         private readonly IBaseRepository<Course> _courseRepository;
@@ -110,6 +112,36 @@ namespace Udemy.Core.Services
             return MapToCourseCardWithLevelDto(cart.CoursesInCart).ToList();
         }
 
+        public async Task<IEnumerable<CourseCardWithLevelDto>> GetCoursesByIds(List<int> itemIds)
+        {
+            try
+            {
+                var courses = new List<Course>();
+
+                foreach (var itemId in itemIds)
+                {
+                    var course = await _courseRepository.GetById(itemId, "CourseID", true,
+                c => c.Instructor,
+                c => c.Enrollments.Select(e => e.Feedback), // Corrected to use ThenInclude instead of Include
+                c => c.Sections.SelectMany(s => s.Lessons),
+                c => c.Category,
+                c => c.Objectives);
+                    if (course != null)
+                    {
+                        courses.Add(course);
+                    }
+                }
+
+                return MapToCourseCardWithLevelDto(courses).ToList();
+            }
+            catch (Exception ex)
+            {
+                // Handle exception appropriately, e.g., log the error
+                Console.WriteLine($"An error occurred while fetching courses: {ex.Message}");
+                throw; // Rethrow the exception for further handling
+            }
+        }
+
         public async Task<IEnumerable<CourseLongDto>> GetCoursesInWishlistByUserId(string id)
         {
             var user = await _userRepository.GetUserByIdAsync(id);
@@ -202,6 +234,57 @@ namespace Udemy.Core.Services
             return null;
         }
 
+        public async Task<bool> RemoveCourseFromCartByUserIdAsync(string userId, int courseId)
+        {
+            // Retrieve the course, user, and cart
+            var course = await _dbcontext.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
+            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            var cart = await _dbcontext.Carts.Include(c => c.CoursesInCart).FirstOrDefaultAsync(c => c.UserID == userId);
+
+            // Check if course, user, and cart exist
+            if (course == null || user == null || cart == null || cart.CoursesInCart == null)
+            {
+                return false; // Exit early if any essential data is missing
+            }
+
+            // Find the course in the cart
+            var courseToRemove = cart.CoursesInCart.FirstOrDefault(c => c.CourseID == courseId);
+            if (courseToRemove == null)
+            {
+                return false; // If the course is not in the cart, return null
+            }
+
+            // Remove the course from the cart
+            cart.CoursesInCart.Remove(courseToRemove);
+            cart.Quantity--; // Decrement cart quantity
+
+            // Save changes to the database
+            await _dbcontext.SaveChangesAsync();
+
+            // Create and return CourseShortDto for the removed course
+            return true;
+        }
+
+        public async Task<bool> RemoveCourseFromWishlistByUserIdAsync(string userId, int courseId)
+        {
+            // Retrieve the course and user's wishlist
+            var course = await _dbcontext.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
+            var user = await _dbcontext.Users.Include(u => u.WishList).FirstOrDefaultAsync(u => u.Id == userId);
+
+            // Check if course and user exist, and if the course is in the wishlist
+            if (course != null && user != null && user.WishList != null && user.WishList.Any(c => c.CourseID == courseId))
+            {
+                // Remove the course from the wishlist
+                var courseToRemove = user.WishList.FirstOrDefault(c => c.CourseID == courseId);
+                user.WishList.Remove(courseToRemove);
+                await _dbcontext.SaveChangesAsync();
+
+                // Return CourseShortDto for the removed course
+                return true;
+            }
+
+            return false; // Course not found in the wishlist or user not found
+        }
         #region private methods
         private async Task<IEnumerable<Course>> GetAllWithIncluded()
         {
@@ -240,6 +323,8 @@ namespace Udemy.Core.Services
                 InstructorName = course.Instructor?.FirstName ?? "Unknown" + " " + course.Instructor?.FirstName ?? "Unknown",
                 Rate = CalculateAverageRate(course),
                 Price = course.Price,
+                ReviewersNumber = course.Enrollments?.Count(e => e.Feedback != null) ?? 0,
+
                 Objectives = course.Objectives.Select(o => new ObjectiveDto
                 {
                     ID = o.ObjectiveID,
@@ -262,7 +347,7 @@ namespace Udemy.Core.Services
                 Rate = CalculateAverageRate(course),
                 Price = course.Price,
                 TotalLessons = course.Sections?.Sum(section => section.Lessons.Count) ?? 0,
-                TotalHours = course.Sections?.Sum(section => section.Lessons.Sum(lesson => lesson.Duration)) ?? 0
+                TotalHours = FormatTotalHours(course.Sections?.Sum(section => section.Lessons.Sum(lesson => lesson.Duration)) ?? 0)
             });
         }
         private IEnumerable<CourseCardWithLevelDto> MapToCourseCardWithLevelDto(IEnumerable<Course> courses)
@@ -283,7 +368,7 @@ namespace Udemy.Core.Services
                 ReviewersNumber = course.Enrollments?.Count(e => e.Feedback != null) ?? 0,
                 Price = course.Price,
                 TotalLessons = course.Sections?.Sum(section => section.Lessons.Count) ?? 0,
-                TotalHours = course.Sections?.Sum(section => section.Lessons.Sum(lesson => lesson.Duration)) ?? 0
+                TotalHours = FormatTotalHours(course.Sections?.Sum(section => section.Lessons.Sum(lesson => lesson.Duration)) ?? 0)
             });
         }
 
@@ -297,7 +382,14 @@ namespace Udemy.Core.Services
         
         }
 
-    #endregion
+        string FormatTotalHours(int totalMinutes)
+        {
+            int hours = totalMinutes / 60;
+            int minutes = totalMinutes % 60;
+            return $"{hours}h {minutes}m";
+        }
+
+        #endregion
 
     }
 }

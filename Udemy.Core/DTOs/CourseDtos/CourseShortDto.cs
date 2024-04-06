@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Udemy.Core.DTOs
+namespace Udemy.Core.DTOs.CourseDtos
 {
     public class CourseShortDto
     {

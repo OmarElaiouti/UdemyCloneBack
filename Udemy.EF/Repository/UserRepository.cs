@@ -32,7 +32,6 @@ namespace Udemy.EF.Repository
            
             return users.FirstOrDefault(u => u.Id == userId);
         }
-
         public async Task<UserDto> GetUserDtoByIdAsync(string userId)
         {
             var user = await GetUserByIdAsync(userId);
@@ -49,7 +48,6 @@ namespace Udemy.EF.Repository
 
             return MapToUserDto(user);
         }
-
         public async Task<UserDto> UpdateUserAsync(string userId, UserDto userDto)
         {
             // Find the user by ID
@@ -80,7 +78,6 @@ namespace Udemy.EF.Repository
                 throw new Exception("Failed to update user.", ex);
             }
         }
-
         public async Task<Transaction> CreateAndProcessTransactionAsync(string userId)
         {
             return await _dbcontext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
@@ -163,7 +160,6 @@ namespace Udemy.EF.Repository
                 throw; // Re-throw the exception to propagate it
             }
         }
-
         public async Task<string> UpdateUserImage(string userId,string filePath)
         {
 
@@ -173,7 +169,6 @@ namespace Udemy.EF.Repository
             // Return the file path
             return filePath;
         }
-
         public async Task<IEnumerable<NotificationDto>> GetUserNotifications(string userId)
         {
 
@@ -182,6 +177,63 @@ namespace Udemy.EF.Repository
             var notifications = user.Notifications;           // Return the file path
             return await MapToNotificationDtoAsync(notifications);
         }
+        public async Task UpdateLastFiveNotificationsStatus(string userId)
+        {
+            try
+            {
+                // Retrieve user by ID
+                var user = await GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    throw new InvalidOperationException("User not found");
+                }
+
+                // Get the last five notifications
+                var lastFiveNotifications = user.Notifications
+                    .OrderByDescending(notification => notification.Timestamp)
+                    .Take(5)
+                    .ToList();
+
+                // Update the status of last five notifications
+                foreach (var notification in lastFiveNotifications)
+                {
+                    notification.Status = true;
+                }
+
+                // Save changes to the data store
+                await _dbcontext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to update notifications status", ex);
+            }
+        }
+        public async Task SetAllUserNotificationsStatus(string userId)
+        {
+            try
+            {
+                var user = await GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    throw new InvalidOperationException("User not found");
+                }
+
+                foreach (var notification in user.Notifications)
+                {
+                    notification.Status = true;
+                }
+
+                await _dbcontext.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                throw new Exception("Failed to update all notifications status", ex);
+            }
+        }
+
+
 
         #region private methods
 
@@ -302,7 +354,7 @@ namespace Udemy.EF.Repository
             {
                 Id = user.Id,
                 Image = user.Image ?? "",
-            FirstName = user.FirstName ?? "",
+                FirstName = user.FirstName ?? "",
                 LastName = user.LastName ?? "",
                 Biography = user.Biography ?? "",
                 Headline = user.Headline ?? "",

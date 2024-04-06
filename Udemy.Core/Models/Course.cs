@@ -21,7 +21,13 @@ namespace Udemy.Core.Models
 
         public string Level { get; set; }
 
+        public string Language { get; set; }
+
+
         public string BriefDescription { get; set; }
+
+        public DateTime DateUpdated { get; set; }
+
 
         public string? Audience { get; set; }
 

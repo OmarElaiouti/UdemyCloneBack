@@ -13,7 +13,7 @@ namespace Udemy.Core.Models
 
 
         [ForeignKey("ParentCategory")]
-        public int? Parent { get; set; }
+        public int? ParentId { get; set; }
 
         public virtual Category ParentCategory { get; set; }
 

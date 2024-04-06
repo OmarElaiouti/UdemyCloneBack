@@ -17,7 +17,7 @@ namespace Udemy.Core.Interfaces
         Task<string> UpdateUserImage(string userId, string filePath);
         Task DeleteUserAsync(string userId);
         Task<IEnumerable<NotificationDto>> GetUserNotifications(string userId);
-
-
+        Task UpdateLastFiveNotificationsStatus(string userId);
+        Task SetAllUserNotificationsStatus(string userId);
     }
 }

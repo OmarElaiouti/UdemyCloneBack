@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -11,8 +12,10 @@ using Udemy.Core.Services;
 using Udemy.EF.Repository;
 using UdemyCloneBackend.Helper;
 using UdemyCloneBackend.Services;
-using UdemyUOW.Core.Interfaces;
 using UdemyUOW.EF.Repository;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+
 
 namespace UdemyApi
 {
@@ -34,14 +37,12 @@ namespace UdemyApi
             builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<UdemyContext>();
             builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped<IAuthService, AuthService>();
-
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
             builder.Services.AddScoped<ICourseDataRepository, CourseDataRepository>();
             builder.Services.AddScoped<ICourseRepository, CourseRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<ICartRepository, CartRepository>();
-
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy(name: MyAllowSpecificOrigins,

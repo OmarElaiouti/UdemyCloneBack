@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Udemy.Core.DTOs;
+using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.Interfaces;
 using Udemy.Core.Models;
 using Udemy.EF.Repository;
@@ -49,6 +49,28 @@ namespace UdemyApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        [HttpPost("anonymous-cart")]
+        public async Task<ActionResult<List<CourseCardWithLevelDto>>> GetAnonymousCart()
+        {
+            try
+            {
+                var itemIds = Request.Form["itemIds"].Select(int.Parse).ToList();
+
+                Console.WriteLine("Received itemIds: " + string.Join(",", itemIds));
+
+                // Assuming you have a repository/service to handle cart operations
+                var cartItems = await _courseService.GetCoursesByIds(itemIds);
+
+                // Return the cart items as JSON response
+                return Ok(cartItems);
+            }
+            catch (Exception ex)
+            {
+                // Handle errors
+                return StatusCode(500, new { message = "Internal server error" });
             }
         }
 
@@ -232,6 +254,48 @@ namespace UdemyApi.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, $"{ex}");
+            }
+        }
+
+        [HttpGet("RemoveCourseFromWishlist/{courseId}")]
+        public async Task<IActionResult> RemoveCourseFromWishlist([FromHeader(Name = "Authorization")] string token, int courseId)
+        {
+            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("Invalid token or token expired.");
+            }
+
+            try
+            {
+                var RemovedCourse = await _courseService.RemoveCourseFromWishlistByUserIdAsync(userId, courseId);
+                return Ok("The course removed from the whishlist successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"{ex}");
+            }
+        }
+
+        [HttpGet("remove-course-from-cart/{courseId}")]
+        public async Task<IActionResult> RemoveCourseFromCart([FromHeader(Name = "Authorization")] string token, int courseId)
+        {
+            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("Invalid token or token expired.");
+            }
+
+            try
+            {
+                var RemovedCourse = await _courseService.RemoveCourseFromCartByUserIdAsync(userId, courseId);
+                return Ok("The course removed from the cart successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex}");
             }
         }
 

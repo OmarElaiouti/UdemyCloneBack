@@ -1,7 +1,7 @@
 ﻿using Udemy.Core.Interfaces;
 using Udemy.Core.Models;
 
-namespace UdemyUOW.Core.Interfaces
+namespace Udemy.Core.Interfaces
 {
     public interface IInstructorRepository : IBaseRepository<User>
     {
