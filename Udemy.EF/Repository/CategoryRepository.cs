@@ -30,7 +30,7 @@ namespace Udemy.EF.Repository
                 .Where(c => c.ParentId == null) // Filter root categories (no parent)
                 .Select(c => new CategoryDto
                 {
-                    Id = c.CategoryId,
+                    Id = c.Id,
                     Name = c.Name
                 })
                 .ToListAsync();
@@ -52,10 +52,10 @@ namespace Udemy.EF.Repository
 
             // Query subcategories of the parent category
             var subCategoriesOrTopics = await _dbcontext.Categories
-                .Where(c => c.ParentId == parentCategory.CategoryId)
+                .Where(c => c.ParentId == parentCategory.Id)
                 .Select(c => new CategoryDto
                 {
-                    Id = c.CategoryId,
+                    Id = c.Id,
                     Name = c.Name
                 })
                 .ToListAsync();

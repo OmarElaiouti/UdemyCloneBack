@@ -6,7 +6,8 @@ namespace Udemy.Core.Models
     public class Category
     {
         [Key]
-        public int CategoryId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        public int Id { get; set; }
 
         [Required]
         public string Name { get; set; }

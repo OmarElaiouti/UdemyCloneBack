@@ -64,7 +64,35 @@ namespace Udemy.Core.Models.UdemyContext
                 .HasForeignKey(c => c.InstructorID)
                 .IsRequired();
            
+            modelBuilder.Entity<Category>().HasData(
+            new Category { Id = 1, Name = "Development", Type = "Main" },
+            new Category { Id = 2, Name = "Art", Type = "Main" },
+            new Category { Id = 3, Name = "Business", Type = "Main" }
+        );
 
+        // Seed subcategories for Development category
+        modelBuilder.Entity<Category>().HasData(
+            new Category { Id = 4, Name = "Programming", Type = "Sub", ParentId = 1 },
+            new Category { Id = 5, Name = "Web Development", Type = "Sub", ParentId = 1 }
+        );
+
+        // Seed topics for Programming subcategory
+        modelBuilder.Entity<Category>().HasData(
+            new Category { Id = 6, Name = "JavaScript", Type = "Topic", ParentId = 4 },
+            new Category { Id = 7, Name = "C#", Type = "Topic", ParentId = 4 }
+        );
+
+        // Seed subcategories for Art category
+        modelBuilder.Entity<Category>().HasData(
+            new Category { Id = 8, Name = "Painting", Type = "Sub", ParentId = 2 },
+            new Category { Id = 9, Name = "Sculpture", Type = "Sub", ParentId = 2 }
+        );
+
+        // Seed topics for Painting subcategory
+        modelBuilder.Entity<Category>().HasData(
+            new Category { Id = 10, Name = "Oil Painting", Type = "Topic", ParentId = 8 },
+            new Category { Id = 11, Name = "Watercolor Painting", Type = "Topic", ParentId = 8 }
+        );
       
 
 

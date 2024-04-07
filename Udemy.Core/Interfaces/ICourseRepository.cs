@@ -15,13 +15,12 @@ namespace Udemy.Core.Interfaces
         Task<IEnumerable<CourseWithObjectivesDto>> GetRandomCourses(int count);
         Task<IEnumerable<CourseWithObjectivesDto>> GetTopRatedCourses(int count);
         Task<IEnumerable<CourseLongDto>> GetCoursesByCategory(string categoryName, int? count);
-
+        Task<CourseShortDto> AddCourseToCartByUserIdAsync(string userId, int courseId);
         Task<IEnumerable<CourseCardWithLevelDto>> GetCoursesInCartByUserId(string id);
         Task<IEnumerable<CourseLongDto>> GetCoursesInWishlistByUserId(string id);
         Task<IEnumerable<CourseLongDto>> GetEnrolledInCoursesByUserId(string id);
 
         Task<Course> GetCourseById(int id);
-        Task<CourseShortDto> AddCourseToCartByUserIdAsync(string userId, int courseId);
         Task<CourseShortDto> AddCourseToWishlistByUserIdAsync(string userId, int courseId);
         Task<IEnumerable<CourseCardWithLevelDto>> GetCoursesByIds(List<int> itemIds);
         Task<IEnumerable<CourseWithObjectivesDto>> GetCoursesByCategoryWithObjctives(string categoryName, int? count);

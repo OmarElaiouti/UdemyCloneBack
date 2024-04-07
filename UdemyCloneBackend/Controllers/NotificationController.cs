@@ -52,7 +52,7 @@ namespace Udemy.API.Controllers
             }
         }
 
-        [HttpPut("notifications-status-last-five")]
+        [HttpPost("notifications-status-last-five")]
         public async Task<ActionResult> SetLastUserNotificationsStatus([FromHeader(Name = "Authorization")] string token)
         {
             try
@@ -75,7 +75,7 @@ namespace Udemy.API.Controllers
             }
         }
 
-        [HttpPut("notifications-status")]
+        [HttpGet("notifications-status")]
         public async Task<ActionResult> SetAllUserNotificationsStatus([FromHeader(Name = "Authorization")] string token)
         {
             try

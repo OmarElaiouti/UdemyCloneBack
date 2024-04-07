@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
@@ -7,6 +8,7 @@ using Udemy.Core.Interfaces;
 using Udemy.Core.Models;
 using Udemy.EF.Repository;
 using UdemyCloneBackend.Services;
+using YamlDotNet.Core.Tokens;
 
 namespace UdemyApi.Controllers
 {
@@ -51,7 +53,7 @@ namespace UdemyApi.Controllers
             }
         }
 
-        [HttpPut("edit-user-data")]
+        [HttpPost("edit-user-data")]
         public async Task<IActionResult> UpdateUser([FromHeader(Name = "Authorization")] string token, [FromBody] UserDto userDto)
         {
             try
@@ -173,7 +175,37 @@ namespace UdemyApi.Controllers
             }
         }
 
-        
+        [HttpGet("add-instructor-role")]
+        public async Task<IActionResult> AddRoleToUser([FromHeader(Name = "Authorization")] string token)
+        {
+            try
+            {
+                // Validate token
+                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return BadRequest();
+                }
+
+                // Add role to user
+                var result = await _userService.AddInstructorRoleToUser(userId);
+                if (result)
+                {
+                    return Ok();
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception ex)
+            {
+                // logger.LogError(ex, "Error occurred while adding role to user.");
+
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
+        }
+
 
     }
 }

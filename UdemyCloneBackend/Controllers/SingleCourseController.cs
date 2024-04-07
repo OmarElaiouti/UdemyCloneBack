@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.Interfaces;
 using UdemyCloneBackend.Services;
-using UdemyUOW.EF.Repository;
 
 namespace UdemyApi.Controllers
 {

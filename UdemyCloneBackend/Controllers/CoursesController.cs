@@ -100,9 +100,27 @@ namespace UdemyApi.Controllers
             }
         }
 
+        [HttpDelete("remove-course-from-cart/{courseId}")]
+        public async Task<ActionResult<CourseShortDto>> DeleteCourseFromCartByUserIdAsync([FromHeader(Name = "Authorization")] string token, int courseId)
+        {
+            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
 
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("Invalid token or token expired.");
+            }
 
-        [HttpGet("courses-in-wishlist")]
+            var courseDto = await _courseService.RemoveCourseFromCartByUserIdAsync(userId, courseId);
+            if (courseDto == null)
+            {
+                return NotFound(); // Or return appropriate response indicating course or cart not found
+            }
+
+            return Ok(courseDto);
+        }
+    
+
+    [HttpGet("courses-in-wishlist")]
         public async Task<ActionResult<List<CourseLongDto>>> GetCoursesInWishlistlistById([FromHeader(Name = "Authorization")] string token)
         {
             try
@@ -155,7 +173,25 @@ namespace UdemyApi.Controllers
         }
 
 
+        [HttpDelete("remove-course-from-wishlist/{courseId}")]
+        public async Task<ActionResult<CourseShortDto>> RemoveCourseFromWishlistByUserIdAsync([FromHeader(Name = "Authorization")] string token, int courseId)
+        {
+            // Parse token to get userId
+            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            if (string.IsNullOrEmpty(userId))
+            {
+                return BadRequest("Invalid token or token expired.");
+            }
 
+            // Call service method to remove course from wishlist
+            var removedCourse = await _courseService.RemoveCourseFromWishlistByUserIdAsync(userId, courseId);
+            if (removedCourse == null)
+            {
+                return NotFound(); // Or return appropriate response indicating course or wishlist not found
+            }
+
+            return Ok(removedCourse);
+        }
 
         [HttpGet("random")]
         public async Task<ActionResult<List<CourseWithObjectivesDto>>> GetRandomCourses()

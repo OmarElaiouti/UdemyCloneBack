@@ -6,7 +6,7 @@ using Udemy.Core.Interfaces;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
 using Udemy.EF.Repository;
-namespace UdemyUOW.EF.Repository
+namespace Udemy.EF.Repository
 {
 
 
@@ -560,14 +560,24 @@ namespace UdemyUOW.EF.Repository
             if (certificateData != null)
             {
                 var studentName = string.IsNullOrWhiteSpace(certificateData.Enrollment.User.FirstName) && string.IsNullOrWhiteSpace(certificateData.Enrollment.User.LastName)
-                ? certificateData.Enrollment.User.UserName
-                : certificateData.Enrollment.User.FirstName + " " + certificateData.Enrollment.User.LastName;
+                    ? certificateData.Enrollment.User.UserName
+                    : certificateData.Enrollment.User.FirstName + " " + certificateData.Enrollment.User.LastName;
+
+                var course = certificateData.Enrollment.Course;
+                float averageRate = await _dbcontext.Feedbacks
+                    .Where(f => f.Enrollment.CourseId == courseId)
+                    .AverageAsync(f => f.Rate);
 
                 var certificateDto = new CertificateDto
                 {
                     StudentName = studentName,
-                    CourseName = certificateData.Enrollment.Course.Name,
-                    InstructorName = certificateData.Enrollment.Course.Instructor.FirstName + " " + certificateData.Enrollment.Course.Instructor.LastName
+                    StudentImage = certificateData.Enrollment.User.Image, // Assuming there's a property for user image URL
+                    CourseName = course.Name,
+                    InstructorName = course.Instructor.FirstName + " " + course.Instructor.LastName,
+                    Rate = averageRate,
+                    Date = certificateData.Enrollment.EnrollmentDate.ToShortDateString(), // Assuming EnrollmentDate is a property of Enrollment
+                    TotalLectures = await _dbcontext.Lessons.CountAsync(l => l.Section.CourseID == courseId),
+                    TotalTime = await FormatTotalTime(courseId)
                 };
 
                 return certificateDto;
@@ -575,6 +585,10 @@ namespace UdemyUOW.EF.Repository
 
             return null;
         }
+
+
+
+
 
 
 
@@ -640,6 +654,17 @@ namespace UdemyUOW.EF.Repository
             };
         }
 
+        private async Task<string> FormatTotalTime(int courseId)
+        {
+            int totalMinutes = await _dbcontext.Lessons
+                .Where(l => l.Section.CourseID == courseId)
+                .SumAsync(l => l.Duration);
+
+            int hours = totalMinutes / 60;
+            int minutes = totalMinutes % 60;
+
+            return $"{hours}h {minutes}m";
+        }
         private NoteDto MapNoteDto(Note note)
         {
             return new NoteDto

@@ -19,5 +19,7 @@ namespace Udemy.Core.Interfaces
         Task<IEnumerable<NotificationDto>> GetUserNotifications(string userId);
         Task UpdateLastFiveNotificationsStatus(string userId);
         Task SetAllUserNotificationsStatus(string userId);
+
+        Task<bool> AddInstructorRoleToUser(string userId);
     }
 }

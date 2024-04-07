@@ -207,7 +207,6 @@ namespace Udemy.Core.Services
             }
             return null;
         }
-        
 
         public async Task<CourseShortDto> AddCourseToWishlistByUserIdAsync(string userId, int courseId)
         {

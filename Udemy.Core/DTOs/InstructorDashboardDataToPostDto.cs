@@ -17,13 +17,12 @@ namespace Udemy.Core.DTOs
         public string CourseDisc { get; set; }
         public float Price { get; set; }
         public string Level { get; set; }
-        public IFormFile Cover { get; set; }
+        public IFormFile? Cover { get; set; }
         public string Language { get; set; }
 
         public IEnumerable<ObjectiveDto> Objectives { get; set; }
         public string FullDescription {  get; set; }
-        public int Sectionnum {  get; set; }
-        public IEnumerable<SectionWithFileDto> Sections {  get; set; }
+        public SectionWithoutFile Section {  get; set; }
         public IEnumerable<RequirementDto> Requirements {  get; set; }
     }
 }

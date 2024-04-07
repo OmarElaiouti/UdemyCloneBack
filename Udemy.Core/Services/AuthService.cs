@@ -105,7 +105,7 @@ namespace UdemyCloneBackend.Services
 
 
             foreach (var role in roles)
-                roleClaims.Add(new Claim("roles", role));
+                roleClaims.Add(new Claim(ClaimTypes.Role, role));
 
 
             var claims = new[]

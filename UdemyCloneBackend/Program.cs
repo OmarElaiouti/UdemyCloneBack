@@ -12,7 +12,6 @@ using Udemy.Core.Services;
 using Udemy.EF.Repository;
 using UdemyCloneBackend.Helper;
 using UdemyCloneBackend.Services;
-using UdemyUOW.EF.Repository;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
@@ -34,21 +33,28 @@ namespace UdemyApi
 
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
 
-            builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<UdemyContext>();
+            builder.Services.AddIdentity<User, IdentityRole>()
+                .AddEntityFrameworkStores<UdemyContext>()
+                .AddDefaultTokenProviders();
+
             builder.Services.AddAutoMapper(typeof(Program));
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
             builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
             builder.Services.AddScoped<ICourseDataRepository, CourseDataRepository>();
             builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<ICartRepository, CartRepository>();
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy(name: MyAllowSpecificOrigins,
+                options.AddPolicy(MyAllowSpecificOrigins,
                                   policy =>
                                   {
-                                      policy.WithOrigins("http://localhost:4200");
+                                      policy.WithOrigins("http://localhost:4200")
+                    .WithMethods("PUT", "POST")
+                                                  .AllowAnyMethod(); ;
                                   });
             });
 

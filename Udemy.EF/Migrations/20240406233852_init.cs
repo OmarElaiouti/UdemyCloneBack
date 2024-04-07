@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Udemy.EF.Migrations
 {
     /// <inheritdoc />
-    public partial class newDb : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -29,21 +31,20 @@ namespace Udemy.EF.Migrations
                 name: "Categories",
                 columns: table => new
                 {
-                    CategoryId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<int>(type: "int", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Parent = table.Column<int>(type: "int", nullable: true),
+                    ParentId = table.Column<int>(type: "int", nullable: true),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Score = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Categories", x => x.CategoryId);
+                    table.PrimaryKey("PK_Categories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Categories_Categories_Parent",
-                        column: x => x.Parent,
+                        name: "FK_Categories_Categories_ParentId",
+                        column: x => x.ParentId,
                         principalTable: "Categories",
-                        principalColumn: "CategoryId");
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -210,7 +211,9 @@ namespace Udemy.EF.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<float>(type: "real", nullable: false),
                     Level = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Language = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     BriefDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DateUpdated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Audience = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     FullDescription = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Cover = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -235,7 +238,7 @@ namespace Udemy.EF.Migrations
                         name: "FK_Courses_Categories_CategoryID",
                         column: x => x.CategoryID,
                         principalTable: "Categories",
-                        principalColumn: "CategoryId");
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -496,8 +499,7 @@ namespace Udemy.EF.Migrations
                 {
                     CertificateID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EnrollmentID = table.Column<int>(type: "int", nullable: false),
-                    CertificateFile = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    EnrollmentID = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -510,12 +512,14 @@ namespace Udemy.EF.Migrations
                 {
                     CommentID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    isReply = table.Column<bool>(type: "bit", nullable: false),
                     EnrollmentID = table.Column<int>(type: "int", nullable: false),
-                    LessonID = table.Column<int>(type: "int", nullable: true),
+                    CourseID = table.Column<int>(type: "int", nullable: false),
                     AnswerTo = table.Column<int>(type: "int", nullable: true),
                     Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    isUpdated = table.Column<bool>(type: "bit", nullable: false),
+                    LessonID = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -525,6 +529,11 @@ namespace Udemy.EF.Migrations
                         column: x => x.AnswerTo,
                         principalTable: "Comments",
                         principalColumn: "CommentID");
+                    table.ForeignKey(
+                        name: "FK_Comments_Courses_CourseID",
+                        column: x => x.CourseID,
+                        principalTable: "Courses",
+                        principalColumn: "CourseID");
                 });
 
             migrationBuilder.CreateTable(
@@ -567,7 +576,8 @@ namespace Udemy.EF.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     EnrollmentId = table.Column<int>(type: "int", nullable: false),
                     Rate = table.Column<float>(type: "real", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -611,8 +621,7 @@ namespace Udemy.EF.Migrations
                     Resources = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     File = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Duration = table.Column<int>(type: "int", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Allowed = table.Column<bool>(type: "bit", nullable: false)
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -652,6 +661,24 @@ namespace Udemy.EF.Migrations
                         column: x => x.LessonID,
                         principalTable: "Lessons",
                         principalColumn: "LessonID");
+                });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "Id", "Name", "ParentId", "Score", "Type" },
+                values: new object[,]
+                {
+                    { 1, "Development", null, null, "Main" },
+                    { 2, "Art", null, null, "Main" },
+                    { 3, "Business", null, null, "Main" },
+                    { 4, "Programming", 1, null, "Sub" },
+                    { 5, "Web Development", 1, null, "Sub" },
+                    { 8, "Painting", 2, null, "Sub" },
+                    { 9, "Sculpture", 2, null, "Sub" },
+                    { 6, "JavaScript", 4, null, "Topic" },
+                    { 7, "C#", 4, null, "Topic" },
+                    { 10, "Oil Painting", 8, null, "Topic" },
+                    { 11, "Watercolor Painting", 8, null, "Topic" }
                 });
 
             migrationBuilder.CreateIndex(
@@ -714,9 +741,9 @@ namespace Udemy.EF.Migrations
                 column: "UserID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Categories_Parent",
+                name: "IX_Categories_ParentId",
                 table: "Categories",
-                column: "Parent");
+                column: "ParentId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Certificates_EnrollmentID",
@@ -727,6 +754,11 @@ namespace Udemy.EF.Migrations
                 name: "IX_Comments_AnswerTo",
                 table: "Comments",
                 column: "AnswerTo");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Comments_CourseID",
+                table: "Comments",
+                column: "CourseID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Comments_EnrollmentID",

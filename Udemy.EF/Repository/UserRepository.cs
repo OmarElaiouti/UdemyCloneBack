@@ -11,6 +11,7 @@ using Udemy.Core.Models.UdemyContext;
 using Udemy.Core.Services;
 using Udemy.Core.Exceptions;
 using System.Reflection.Metadata;
+using Microsoft.AspNetCore.Identity;
 
 namespace Udemy.EF.Repository
 {
@@ -18,13 +19,17 @@ namespace Udemy.EF.Repository
     {
         private readonly IBaseRepository<User> _userRepository;
         private readonly UdemyContext _dbcontext;
+        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly UserManager<User> _userManager;
 
-        public UserRepository(IBaseRepository<User> userRepository, UdemyContext dbContext) : base(dbContext)
+        public UserRepository(IBaseRepository<User> userRepository, UdemyContext dbContext, RoleManager<IdentityRole> roleManager, UserManager<User> userManager) : base(dbContext)
         {
             _userRepository = userRepository;
             _dbcontext = dbContext;
-        }
+            _roleManager = roleManager;
+            _userManager = userManager;
 
+        }
         public async Task<User> GetUserByIdAsync(string userId)
         {
             var users = await GetAllWithIncluded();
@@ -233,6 +238,40 @@ namespace Udemy.EF.Repository
             }
         }
 
+        public async Task<bool> AddInstructorRoleToUser(string userId)
+        {
+            // Find the user by userId
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                // User not found
+                return false;
+            }
+
+            // Check if the role "Instructor" exists, if not, create it
+            var instructorRoleExists = await _roleManager.RoleExistsAsync("Instructor");
+            if (!instructorRoleExists)
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Instructor"));
+            }
+
+            // Add the "Instructor" role to the user if it doesn't already have it
+            var isInstructor = await _userManager.IsInRoleAsync(user, "Instructor");
+            if (!isInstructor)
+            {
+                await _userManager.AddToRoleAsync(user, "Instructor");
+            }
+
+            return true;
+        }
+
+
+
+
+
+
+
+
 
 
         #region private methods
@@ -254,7 +293,7 @@ namespace Udemy.EF.Repository
             var notification = new Notification
             {
                 EventType = "TransuctionsSuccess",
-                Content = $"You have a successful transuction of {transaction.Amount}$ for {transaction.PurchasedCourses.Count()} courses",
+                Content = $"You have a successful transuction of {transaction.Amount}$ ",
                 Timestamp = DateTime.UtcNow,
                 Status = false,
                 UserID=userId
@@ -265,7 +304,6 @@ namespace Udemy.EF.Repository
 
             // You can also send notifications to other relevant users or parties
         }
-
         private async Task SendEnrollmentNotificationAsync(string userId, Enrollment enrollment)
         {
             string courseName = _dbcontext.Courses.Find(enrollment.CourseId).Name;
@@ -319,6 +357,7 @@ namespace Udemy.EF.Repository
             }
 
         }
+        
         private UserDto ConvertToUserDto(User user)
         {
             return new UserDto

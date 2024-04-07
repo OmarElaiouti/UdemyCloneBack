@@ -13,6 +13,6 @@ namespace Udemy.Core.DTOs.CoursePartsDtos
 
         public int LessonTimeInMinutes { get; set; }
 
-        public IFormFile LessonVideo { get; set; }
+        public IFormFile? LessonVideo { get; set; } 
     }
 }

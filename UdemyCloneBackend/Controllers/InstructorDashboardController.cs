@@ -31,7 +31,7 @@ namespace UdemyApi.Controllers
         }
 
         [HttpPost("create-or-update-course")]
-        public async Task<ActionResult<bool>> CreateOrUpdateCourse([FromHeader(Name = "Authorization")] string token, [FromBody] InstructorDashboardDataToPostDto courseData)
+        public async Task<ActionResult<bool>> CreateOrUpdateCourse([FromHeader(Name = "Authorization")] string token, [FromBody] InstructorDashboardDataToPostDto courseData, [FromForm(Name = "lessonFiles")] List<IFormFile> lessonFiles, [FromForm(Name = "coverImage")] IFormFile coverImage)
         {
             try
             {
@@ -48,19 +48,19 @@ namespace UdemyApi.Controllers
                 if (existingCourse != null)
                 {
                     // Update existing course
-                    UpdateCourse(existingCourse, courseData);
+                    UpdateCourse(existingCourse, courseData, coverImage);
                 }
                 else
                 {
                     // Create new course
-                    existingCourse = CreateCourse(courseData, instructorId);
+                    existingCourse = CreateCourse(courseData, instructorId, coverImage);
                     _dbcontext.Courses.Add(existingCourse);
                 }
 
                 // Create or update course requirements, objectives, sections, and lessons
                 await CreateOrUpdateCourseRequirements(existingCourse, courseData.Requirements);
                 await CreateOrUpdateCourseObjectives(existingCourse, courseData.Objectives);
-                await CreateOrUpdateCourseSections(existingCourse, courseData.Sections);
+                await CreateOrUpdateCourseSections(existingCourse, courseData.Section, lessonFiles);
 
                 // Save changes to the database
                 await _dbcontext.SaveChangesAsync();
@@ -74,7 +74,8 @@ namespace UdemyApi.Controllers
                 return StatusCode(500, "An error occurred while processing your request.");
             }
         }
-
+        
+        
         [HttpGet("course/{courseId}")]
         public async Task<ActionResult<InstructorDashboardDataToGetDto>> GetCourseData(int courseId)
         {
@@ -256,7 +257,7 @@ namespace UdemyApi.Controllers
         private async Task<int> GetCategoryIdByName(string categoryName)
         {
             var category = await _dbcontext.Categories.FirstOrDefaultAsync(c => c.Name == categoryName);
-            return category?.CategoryId ?? 0;
+            return category?.Id ?? 0;
         }
 
         private async Task<string> SaveFileAsync(IFormFile file, string folderPath)
@@ -283,7 +284,7 @@ namespace UdemyApi.Controllers
             return null;
         }
 
-        private void UpdateCourse(Course course, InstructorDashboardDataToPostDto courseData)
+        private void UpdateCourse(Course course, InstructorDashboardDataToPostDto courseData, IFormFile coverImage)
         {
             course.Price = courseData.Price;
             course.Level = courseData.Level;
@@ -292,10 +293,9 @@ namespace UdemyApi.Controllers
             course.DateUpdated = DateTime.UtcNow;
             course.FullDescription = courseData.FullDescription;
             course.CategoryID = GetCategoryIdByName(courseData.CategoryName).Result; // Ensure it's synchronous
-            course.Cover = SaveFileAsync(courseData.Cover, "courses/coursesCovers").Result; // Ensure it's synchronous
+            course.Cover = SaveFileAsync(coverImage, "courses/coursesCovers").Result; // Ensure it's synchronous
         }
-
-        private Course CreateCourse(InstructorDashboardDataToPostDto courseData, string instructorId)
+        private Course CreateCourse(InstructorDashboardDataToPostDto courseData, string instructorId, IFormFile coverImage)
         {
             return new Course
             {
@@ -310,10 +310,9 @@ namespace UdemyApi.Controllers
                 FullDescription = courseData.FullDescription,
                 InstructorID = instructorId,
                 CategoryID = GetCategoryIdByName(courseData.CategoryName).Result, // Ensure it's synchronous
-                Cover = SaveFileAsync(courseData.Cover, "courses/coursesCovers").Result // Ensure it's synchronous
+                Cover = SaveFileAsync(coverImage, "courses/coursesCovers").Result // Ensure it's synchronous
             };
         }
-
         private async Task CreateOrUpdateCourseRequirements(Course course, IEnumerable<RequirementDto> requirements)
         {
             if (requirements != null)
@@ -351,39 +350,48 @@ namespace UdemyApi.Controllers
                 }
             }
         }
-        private async Task CreateOrUpdateCourseSections(Course course, IEnumerable<SectionWithFileDto> sections)
+        private async Task CreateOrUpdateCourseSections(Course course,SectionWithoutFile section, List<IFormFile> lessonFiles)
         {
-            if (sections != null)
+            if (section != null)
             {
                 _dbcontext.Sections.RemoveRange(course.Sections); // Remove existing sections
                 await _dbcontext.SaveChangesAsync();
 
-                foreach (var sectionDto in sections)
-                {
-                    var section = new Section
+             
+                    var newSection = new Section
                     {
-                        Title = sectionDto.SectionName,
-                        CourseID = course.CourseID
-                    };
-                    _dbcontext.Sections.Add(section);
+                        Title = section.SectionName,
+                        CourseID = course.CourseID,
+                       
 
-                    await CreateOrUpdateSectionLessons(section, sectionDto.Lessons, course.CourseID);
-                }
+                    };
+
+
+                    _dbcontext.Sections.Add(newSection);
+
+                CreateOrUpdateSectionLessons(newSection, section.Lessons, course.CourseID, lessonFiles);
+
+
+
+
+
+
             }
         }
-
-        private async Task CreateOrUpdateSectionLessons(Section section, IEnumerable<LessonWithFileDto> lessons, int courseId)
+        private async Task CreateOrUpdateSectionLessons(Section section, IEnumerable<LessonWithoutFileDto> lessons, int courseId, List<IFormFile> lessonFiles)
         {
             if (lessons != null)
             {
-                foreach (var lessonDto in lessons)
+                for (int i = 0; i < lessons.Count(); i++)
                 {
-                    var lessonFile = await SaveFileAsync(lessonDto.LessonVideo, $"courses/{courseId}/{section.Title}");
+                    var lessonDto = lessons.ElementAt(i);
+                    var lessonFile = lessonFiles[i]; // Get corresponding lesson file
+                    var lessonFilePath = await SaveFileAsync(lessonFile, $"courses/{courseId}/{section.Title}");
                     var lesson = new Lesson
                     {
                         Title = lessonDto.LessonName,
                         SectionID = section.SectionID,
-                        File = lessonFile, // Assign lesson file path
+                        File = lessonFilePath, // Assign lesson file path
                         Duration = lessonDto.LessonTimeInMinutes,
                     };
                     _dbcontext.Lessons.Add(lesson);
@@ -391,7 +399,6 @@ namespace UdemyApi.Controllers
                 await _dbcontext.SaveChangesAsync();
             }
         }
-
 
         #endregion
     }

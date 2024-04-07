@@ -9,9 +9,17 @@ namespace Udemy.Core.DTOs
     public class CertificateDto
     {
         public string StudentName { get; set; }
+        public string StudentImage { get; set; }
+
         public string CourseName { get; set; }
         public string InstructorName { get; set; }
-        
-        
+
+        public float Rate { get; set; }
+        public string Date { get; set; }
+        public int TotalLectures { get; set; }
+        public string TotalTime { get; set; }
+
+
+
     }
 }
