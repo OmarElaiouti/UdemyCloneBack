@@ -1,19 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
+using System.Security.Claims;
 using Udemy.Core.DTOs;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models;
 using Udemy.EF.Repository;
-using UdemyCloneBackend.Services;
 using YamlDotNet.Core.Tokens;
 
 namespace UdemyApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _userService;
@@ -28,11 +31,11 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("get-user")]
-        public async Task<ActionResult<UserDto>> GetUser([FromHeader(Name = "Authorization")] string token)
+        public async Task<ActionResult<UserDto>> GetUser()
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {

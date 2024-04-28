@@ -1,4 +1,4 @@
-﻿using Udemy.Core.Interfaces;
+﻿using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
 using Udemy.Core.Models;
 
 namespace Udemy.Core.Interfaces

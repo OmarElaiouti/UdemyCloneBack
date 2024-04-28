@@ -9,9 +9,11 @@ using Udemy.Core.DTOs;
 using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.DTOs.CoursePartsDtos;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
-using Udemy.EF.Repository;
+using Udemy.EF.Repository.NewFolder;
+using Udemy.EF.UnitOfWork;
 
 namespace Udemy.Core.Services
 {
@@ -21,16 +23,18 @@ namespace Udemy.Core.Services
         private readonly IBaseRepository<Course> _courseRepository;
         private readonly ICartRepository _cartRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IUnitOfWork<UdemyContext> _unitOfWork;
         private readonly UdemyContext _dbcontext;
 
 
 
-        public CourseRepository(IBaseRepository<Course> courseRepository, IUserRepository userRepository, ICartRepository cartRepository, UdemyContext dbContext):base(dbContext)
+        public CourseRepository(IBaseRepository<Course> courseRepository, IUnitOfWork<UdemyContext> unitOfWork, IUserRepository userRepository, ICartRepository cartRepository, UdemyContext dbContext):base(dbContext)
         {
             _courseRepository = courseRepository;
             _cartRepository = cartRepository;
             _userRepository = userRepository;
             _dbcontext = dbContext;
+            _unitOfWork = unitOfWork;
 
         }
 
@@ -167,122 +171,171 @@ namespace Udemy.Core.Services
 
         public async Task<CourseShortDto> AddCourseToCartByUserIdAsync(string userId, int courseId)
         {
-            var course = await _dbcontext.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
-            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            var cart = await _dbcontext.Carts.Include(c => c.CoursesInCart).FirstOrDefaultAsync(c => c.UserID == userId);
-
-            if (cart == null)
-            { 
-                // If the cart doesn't exist for the user, create a new cart
-                cart = new Cart { UserID = userId,Quantity=0 };
-                _dbcontext.Carts.Add(cart);
-                await _dbcontext.SaveChangesAsync();
-
-                var newCart = await _cartRepository.GetCartByUserIdAsync(userId);
-                user.CartID = newCart.CartID;
-                await _dbcontext.SaveChangesAsync();
-
-            }
-
-            if (course != null && (cart.CoursesInCart == null || !cart.CoursesInCart.Any(c => c.CourseID == courseId)))
+            try
             {
-                // Add the course to the cart
-                if (cart.CoursesInCart == null)
+                _unitOfWork.CreateTransaction();
+
+                var course = await _unitOfWork.Context.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
+                var user = await _unitOfWork.Context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                var cart = await _unitOfWork.Context.Carts.Include(c => c.CoursesInCart).FirstOrDefaultAsync(c => c.UserID == userId);
+
+                if (cart == null)
                 {
-                    cart.CoursesInCart = new List<Course>(); // Ensure that CoursesInCart is initialized
+                    // If the cart doesn't exist for the user, create a new cart
+                    cart = new Cart { UserID = userId, Quantity = 0 };
+                    _unitOfWork.Context.Carts.Add(cart);
+                    _unitOfWork.Save();
+
+                    var newCart = await _cartRepository.GetCartByUserIdAsync(userId);
+                    user.CartID = newCart.CartID;
+                    _unitOfWork.Save();
                 }
 
-                cart.CoursesInCart.Add(course);
-                cart.Quantity++; // Increment cart quantity
-                await _dbcontext.SaveChangesAsync();
-                return new CourseShortDto
+                if (course != null && (cart.CoursesInCart == null || !cart.CoursesInCart.Any(c => c.CourseID == courseId)))
                 {
-                    ID = course.CourseID,
-                    Image = course.Cover,
-                    Name = course.Name,
-                    Price = course.Price,
-                    InstructorName = course.Instructor?.FirstName ?? "Unknown" + " " + course.Instructor?.FirstName ?? "Unknown",
-                    Rate = 0
-                };
+                    // Add the course to the cart
+                    if (cart.CoursesInCart == null)
+                    {
+                        cart.CoursesInCart = new List<Course>(); // Ensure that CoursesInCart is initialized
+                    }
+
+                    cart.CoursesInCart.Add(course);
+                    cart.Quantity++; // Increment cart quantity
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
+
+                    return new CourseShortDto
+                    {
+                        ID = course.CourseID,
+                        Image = course.Cover,
+                        Name = course.Name,
+                        Price = course.Price,
+                        InstructorName = course.Instructor?.FirstName ?? "Unknown" + " " + course.Instructor?.FirstName ?? "Unknown",
+                        Rate = 0
+                    };
+                }
             }
+            catch (Exception ex)
+            {
+                // Handle exception, log it, or return null indicating failure
+                _unitOfWork.Rollback();
+            }
+
             return null;
         }
 
         public async Task<CourseShortDto> AddCourseToWishlistByUserIdAsync(string userId, int courseId)
         {
-            var course = await _dbcontext.Courses.Include(c=>c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
-            var user = await _dbcontext.Users.Include(u => u.WishList).FirstOrDefaultAsync(u=>u.Id == userId);
-
-        
-
-            if (course != null && !user.WishList.Any(c => c.CourseID == courseId))
+            try
             {
-                // Add the course to the cart
-                user.WishList.Add(course);
-                await _dbcontext.SaveChangesAsync();
-                return new CourseShortDto
+                _unitOfWork.CreateTransaction();
+
+                var course = await _unitOfWork.Context.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
+                var user = await _unitOfWork.Context.Users.Include(u => u.WishList).FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (course != null && !user.WishList.Any(c => c.CourseID == courseId))
                 {
-                    ID = course.CourseID,
-                    Image = course.Cover,
-                    Name = course.Name,
-                    Price = course.Price,
-                    InstructorName = course.Instructor?.FirstName ?? "Unknown" + " " + course.Instructor?.FirstName ?? "Unknown",
-                    Rate=0
-                };
+                    // Add the course to the wishlist
+                    user.WishList.Add(course);
+                    _unitOfWork.Save();
+                    _unitOfWork.Commit();
+
+                    return new CourseShortDto
+                    {
+                        ID = course.CourseID,
+                        Image = course.Cover,
+                        Name = course.Name,
+                        Price = course.Price,
+                        InstructorName = course.Instructor?.FirstName ?? "Unknown" + " " + course.Instructor?.LastName ?? "Unknown",
+                        Rate = 0
+                    };
+                }
             }
+            catch (Exception ex)
+            {
+                // Handle exception, log it, or return null indicating failure
+                _unitOfWork.Rollback();
+            }
+
             return null;
         }
 
         public async Task<bool> RemoveCourseFromCartByUserIdAsync(string userId, int courseId)
         {
-            // Retrieve the course, user, and cart
-            var course = await _dbcontext.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
-            var user = await _dbcontext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            var cart = await _dbcontext.Carts.Include(c => c.CoursesInCart).FirstOrDefaultAsync(c => c.UserID == userId);
-
-            // Check if course, user, and cart exist
-            if (course == null || user == null || cart == null || cart.CoursesInCart == null)
+            try
             {
-                return false; // Exit early if any essential data is missing
-            }
+                _unitOfWork.CreateTransaction();
 
-            // Find the course in the cart
-            var courseToRemove = cart.CoursesInCart.FirstOrDefault(c => c.CourseID == courseId);
-            if (courseToRemove == null)
+                // Retrieve the course, user, and cart
+                var course = await _unitOfWork.Context.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
+                var user = await _unitOfWork.Context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+                var cart = await _unitOfWork.Context.Carts.Include(c => c.CoursesInCart).FirstOrDefaultAsync(c => c.UserID == userId);
+
+                // Check if course, user, and cart exist
+                if (course == null || user == null || cart == null || cart.CoursesInCart == null)
+                {
+                    return false; // Exit early if any essential data is missing
+                }
+
+                // Find the course in the cart
+                var courseToRemove = cart.CoursesInCart.FirstOrDefault(c => c.CourseID == courseId);
+                if (courseToRemove == null)
+                {
+                    return false; // If the course is not in the cart, return false
+                }
+
+                // Remove the course from the cart
+                cart.CoursesInCart.Remove(courseToRemove);
+                cart.Quantity--; // Decrement cart quantity
+
+                // Save changes to the database
+                _unitOfWork.Save();
+
+                _unitOfWork.Commit();
+
+                return true;
+            }
+            catch (Exception ex)
             {
-                return false; // If the course is not in the cart, return null
+                // Handle exception, log it, or return false indicating failure
+                _unitOfWork.Rollback();
+                return false;
             }
-
-            // Remove the course from the cart
-            cart.CoursesInCart.Remove(courseToRemove);
-            cart.Quantity--; // Decrement cart quantity
-
-            // Save changes to the database
-            await _dbcontext.SaveChangesAsync();
-
-            // Create and return CourseShortDto for the removed course
-            return true;
         }
 
         public async Task<bool> RemoveCourseFromWishlistByUserIdAsync(string userId, int courseId)
         {
-            // Retrieve the course and user's wishlist
-            var course = await _dbcontext.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
-            var user = await _dbcontext.Users.Include(u => u.WishList).FirstOrDefaultAsync(u => u.Id == userId);
-
-            // Check if course and user exist, and if the course is in the wishlist
-            if (course != null && user != null && user.WishList != null && user.WishList.Any(c => c.CourseID == courseId))
+            try
             {
-                // Remove the course from the wishlist
-                var courseToRemove = user.WishList.FirstOrDefault(c => c.CourseID == courseId);
-                user.WishList.Remove(courseToRemove);
-                await _dbcontext.SaveChangesAsync();
+                _unitOfWork.CreateTransaction();
 
-                // Return CourseShortDto for the removed course
-                return true;
+                // Retrieve the course and user's wishlist
+                var course = await _unitOfWork.Context.Courses.Include(c => c.Instructor).FirstOrDefaultAsync(c => c.CourseID == courseId);
+                var user = await _unitOfWork.Context.Users.Include(u => u.WishList).FirstOrDefaultAsync(u => u.Id == userId);
+
+                // Check if course and user exist, and if the course is in the wishlist
+                if (course != null && user != null && user.WishList != null && user.WishList.Any(c => c.CourseID == courseId))
+                {
+                    // Remove the course from the wishlist
+                    var courseToRemove = user.WishList.FirstOrDefault(c => c.CourseID == courseId);
+                    user.WishList.Remove(courseToRemove);
+                    _unitOfWork.Save();
+
+                    _unitOfWork.Commit();
+
+                    // Return true to indicate success
+                    return true;
+                }
+
+                // Return false if course not found in the wishlist or user not found
+                return false;
             }
-
-            return false; // Course not found in the wishlist or user not found
+            catch (Exception ex)
+            {
+                // Handle exception, log it, or return false indicating failure
+                _unitOfWork.Rollback();
+                return false;
+            }
         }
         #region private methods
         private async Task<IEnumerable<Course>> GetAllWithIncluded()

@@ -6,9 +6,9 @@ using Udemy.Core.DTOs;
 using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.DTOs.CoursePartsDtos;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
-using UdemyCloneBackend.Services;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace UdemyApi.Controllers

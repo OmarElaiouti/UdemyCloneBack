@@ -4,21 +4,28 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models;
 using Udemy.Core.Models.AuthModel;
+using Udemy.Core.Models.UdemyContext;
+using Udemy.EF.UnitOfWork;
 using UdemyCloneBackend.Helper;
 
-namespace UdemyCloneBackend.Services
+namespace Udemy.EF.Repositories
 {
     public class AuthService : IAuthService
     {
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly JWT _jwt;
-
-        public AuthService(UserManager<User> userManager, IOptions<JWT> jwt)
+        private readonly IUnitOfWork<UdemyContext> _unitOfWork;
+        public AuthService(UserManager<User> userManager, IOptions<JWT> jwt, SignInManager<User> signInManager, IUnitOfWork<UdemyContext> unitOfWork)
         {
             _userManager = userManager;
+            _signInManager = signInManager;
             _jwt = jwt.Value;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<AuthModel> Register(RegisterModel model)
@@ -39,61 +46,85 @@ namespace UdemyCloneBackend.Services
 
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
+            try
             {
-                var errors = string.Empty;
+                _unitOfWork.CreateTransaction(); // Begin transaction for data consistency
 
-                foreach (var error in result.Errors)
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (!result.Succeeded)
                 {
-                    errors += $"{error.Description},";
+                    throw new Exception(string.Join(",", result.Errors.Select(e => e.Description))); // Combine errors for better message
                 }
 
-                return new AuthModel { Message = errors };
+                await _userManager.AddToRoleAsync(user, "Student");
+
+                var jwtSecurityToken = await CreateJWtToken(user);
+
+                _unitOfWork.Commit(); // Commit transaction if successful
+
+                return new AuthModel
+                {
+                    Email = user.Email,
+                    UserName = user.UserName,
+                    isAuthenticated = true,
+                    Roles = new List<string> { "Student" },
+                    Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                    ExpiresOn = jwtSecurityToken.ValidTo,
+                };
             }
-            await _userManager.AddToRoleAsync(user, "Student");
-
-            var jwtSecurityToken = await CreateJWtToken(user);
-
-            return new AuthModel
+            catch (Exception ex)
             {
-                Email = user.Email,
-                UserName = user.UserName,
-                isAuthenticated = true,
-                Roles = new List<string> { "Student" },
-                Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                ExpiresOn = jwtSecurityToken.ValidTo,
-
-            };
-
+                _unitOfWork.Rollback(); // Rollback on errors
+                return new AuthModel { Message = "Registration failed" }; // Generic message for user-facing response
+            }
         }
 
-        public async Task<AuthModel> Login (LoginModel model)
+
+
+        public async Task<AuthModel> Login(LoginModel model)
         {
-            var authmodel = new AuthModel();
+            var authModel = new AuthModel();
 
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            
-            var password = await _userManager.CheckPasswordAsync(user , model.Password);
-
-            if(user is null || !password )
+            try
             {
-                authmodel.Message = "Email or Password is incorrect";
-                return authmodel;
+
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user == null)
+                {
+                    // Avoid revealing if username or password is incorrect for security reasons.
+                    // A generic message like "Invalid login credentials" is recommended.
+                    authModel.Message = "Invalid login credentials";
+                    return authModel;
+                }
+
+                var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, lockoutOnFailure: false);
+                if (!result.Succeeded)
+                {
+                    // Same as above, avoid revealing specific details.
+                    authModel.Message = "Invalid login credentials";
+                    return authModel;
+                }
+
+                var jwtSecurityToken = await CreateJWtToken(user);
+
+                authModel.isAuthenticated = true;
+                authModel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                authModel.Email = model.Email;
+                authModel.ExpiresOn = jwtSecurityToken.ValidTo;
+
+                var roleList = await _userManager.GetRolesAsync(user);
+                authModel.Roles = roleList.ToList();
+
+                return authModel;
             }
-
-            var jwtSecurityToken = await CreateJWtToken(user);
-
-            authmodel.isAuthenticated = true;
-            authmodel.Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
-            authmodel.Email = model.Email;  
-            authmodel.ExpiresOn = jwtSecurityToken.ValidTo;
-
-            var roleList = await _userManager.GetRolesAsync(user);
-            authmodel.Roles = roleList.ToList();
-
-            return authmodel;
+            catch (Exception ex)
+            {
+                // Log the exception for debugging purposes
+                Console.WriteLine($"Login error: {ex.Message}");
+                authModel.Message = "Login failed"; // Generic message for user
+                return authModel;
+            }
         }
 
 

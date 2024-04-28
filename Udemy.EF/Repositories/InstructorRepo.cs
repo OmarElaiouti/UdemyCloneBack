@@ -2,8 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
-using Udemy.EF.Repository;
 using Udemy.Core.Interfaces;
+using Udemy.EF.Repository.NewFolder;
 
 namespace Udemy.EF.Repository
 {

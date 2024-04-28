@@ -2,8 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Udemy.Core.DTOs;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositories;
+using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
 using Udemy.Core.Models;
-using UdemyCloneBackend.Services;
 
 namespace Udemy.API.Controllers
 {

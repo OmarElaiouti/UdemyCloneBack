@@ -1,10 +1,12 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models;
 using Udemy.EF.Repository;
-using UdemyCloneBackend.Services;
 
 namespace UdemyApi.Controllers
 {
@@ -75,11 +77,12 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("courses-in-cart")]
-        public async Task<ActionResult<List<CourseCardWithLevelDto>>> GetCoursesInCartByUserId([FromHeader(Name = "Authorization")] string token)
+        [Authorize]
+        public async Task<ActionResult<List<CourseCardWithLevelDto>>> GetCoursesInCartByUserId()
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -103,12 +106,13 @@ namespace UdemyApi.Controllers
         
     
 
-    [HttpGet("courses-in-wishlist")]
-        public async Task<ActionResult<List<CourseLongDto>>> GetCoursesInWishlistlistById([FromHeader(Name = "Authorization")] string token)
+        [HttpGet("courses-in-wishlist")]
+        [Authorize]
+        public async Task<ActionResult<List<CourseLongDto>>> GetCoursesInWishlistlistById()
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -130,11 +134,12 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("enrolled-in")]
-        public async Task<ActionResult<List<CourseLongDto>>> GetEnrolledInCoursesById([FromHeader(Name = "Authorization")] string token)
+        [Authorize]
+        public async Task<ActionResult<List<CourseLongDto>>> GetEnrolledInCoursesById()
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -217,9 +222,10 @@ namespace UdemyApi.Controllers
 
 
         [HttpGet("add-course-to-cart/{courseId}")]
-        public async Task<IActionResult> AddCourseToCart([FromHeader(Name = "Authorization")] string token,int courseId)
+        [Authorize]
+        public async Task<IActionResult> AddCourseToCart(int courseId)
         {
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -238,9 +244,10 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("addCourseToWishlist/{courseId}")]
-        public async Task<IActionResult> AddCourseToWishlist([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+        public async Task<IActionResult> AddCourseToWishlist(int courseId)
         {
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -259,9 +266,10 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("RemoveCourseFromWishlist/{courseId}")]
-        public async Task<IActionResult> RemoveCourseFromWishlist([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+        public async Task<IActionResult> RemoveCourseFromWishlist(int courseId)
         {
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -280,9 +288,10 @@ namespace UdemyApi.Controllers
         }
 
         [HttpGet("remove-course-from-cart/{courseId}")]
-        public async Task<IActionResult> RemoveCourseFromCart([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+        public async Task<IActionResult> RemoveCourseFromCart(int courseId)
         {
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {

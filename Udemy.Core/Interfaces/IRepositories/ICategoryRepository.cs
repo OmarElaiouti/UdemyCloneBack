@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Udemy.Core.DTOs;
 
-namespace Udemy.Core.Interfaces
+namespace Udemy.Core.Interfaces.IRepositories
 {
     public interface ICategoryRepository
     {
-        Task<IEnumerable<CategoryDto>> GetCategories();
-        Task<IEnumerable<CategoryDto>> GetSubCategoriesOrTopicsByParentName(string parentName);
+        IEnumerable<CategoryDto> GetCategories();
+        IEnumerable<CategoryDto> GetSubCategoriesOrTopicsByParentName(string parentName);
     }
 }

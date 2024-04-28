@@ -7,18 +7,21 @@ using System.Text;
 using System.Threading.Tasks;
 using Udemy.Core.Models;
 
-namespace Udemy.Core.Interfaces
+namespace Udemy.Core.Interfaces.IRepositoris.IBaseRepository
 {
     public interface IBaseRepository<T> where T : class
     {
+        IEnumerable<T> GetAll();
+        IEnumerable<T> GetAll(Func<T, bool> filter);
         Task<IEnumerable<T>> GetAll(bool includeRelatedEntities = false, params Expression<Func<T, object>>[] includeProperties);
 
-        Task Update(T entity);
+        T GetById(object id);
         Task<T> GetById(object idValue, string idPropertyName, bool includeRelatedEntities = false, params Expression<Func<T, object>>[] includeProperties);
-        IEnumerable<T> GetById(int Id, Func<T, bool> predicate);
 
-        //IEnumerable<T> GetAll2();
-
+        void Insert(T obj);
+        void Update(T obj);
+        void Delete(T obj);
 
     }
+   
 }

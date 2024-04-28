@@ -3,9 +3,11 @@ using Udemy.Core.DTOs;
 using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.DTOs.CoursePartsDtos;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
 using Udemy.Core.Models;
 using Udemy.Core.Models.UdemyContext;
-using Udemy.EF.Repository;
+using Udemy.EF.Repository.NewFolder;
+using Udemy.EF.UnitOfWork;
 namespace Udemy.EF.Repository
 {
 
@@ -14,11 +16,13 @@ namespace Udemy.EF.Repository
     {
         private readonly UdemyContext _dbcontext;
         private readonly IBaseRepository<Course> _courseDataRepository;
+        private readonly IUnitOfWork<UdemyContext> _unitOfWork;
 
-        public CourseDataRepository(IBaseRepository<Course> courseDataRepository, UdemyContext dbcontext) : base(dbcontext)
+        public CourseDataRepository(IBaseRepository<Course> courseDataRepository, IUnitOfWork<UdemyContext> unitOfWork, UdemyContext dbcontext) : base(dbcontext)
         {
             _dbcontext = dbcontext;
             _courseDataRepository = courseDataRepository;
+            _unitOfWork = unitOfWork;
         }
 
 
@@ -108,55 +112,6 @@ namespace Udemy.EF.Repository
             return studentReview;
         }
 
-        public async Task<bool> SetStudentReviewOnCourse(int courseId, string userId, FeedbackDto feedbackDto)
-        {
-            // Find the enrollment record for the specified course and user
-            var enrollment = await _dbcontext.Enrollments
-                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
-
-            if (enrollment == null)
-            {
-                // If the enrollment record doesn't exist, return false indicating failure
-                return false;
-            }
-
-            // Check if there's already a feedback record for this enrollment
-            var existingFeedback = await _dbcontext.Feedbacks
-                .FirstOrDefaultAsync(f => f.EnrollmentId == enrollment.Id);
-
-            // If there's no existing feedback, create a new feedback record
-            if (existingFeedback == null)
-            {
-                // Create a new feedback record
-                existingFeedback = new Feedback
-                {
-                    EnrollmentId = enrollment.Id // Set the EnrollmentId
-                };
-
-                // Update the feedback properties
-                existingFeedback.Rate = feedbackDto.Rate;
-                existingFeedback.Comment = feedbackDto.ReviewComment;
-                existingFeedback.Date = DateTime.UtcNow; // Assuming you want to set the current date/time
-
-                // Add the new feedback record to the DbContext
-                _dbcontext.Feedbacks.Add(existingFeedback);
-            }
-            else
-            {
-                // Update the existing feedback properties
-                existingFeedback.Rate = feedbackDto.Rate;
-                existingFeedback.Comment = feedbackDto.ReviewComment;
-                existingFeedback.Date = DateTime.UtcNow; // Assuming you want to update the date/time
-            }
-
-            // Save changes to the database
-            await _dbcontext.SaveChangesAsync();
-
-            // Return true to indicate success
-            return true;
-        }
-
-
         public async Task<IEnumerable<CourseCommentDto>> GetCommentsByCourseIdAsync(int courseId, string userId)
         {
             var courseComments = await _dbcontext.Comments
@@ -182,63 +137,6 @@ namespace Udemy.EF.Repository
             });
 
             return commentsDto;
-        }
-
-        public async Task<bool> SetStudentCommentOnCourse(int courseId, string userId, CourseCommentDto commentDto)
-        {
-            try
-            {
-                // Check if the user is enrolled in the course
-                var enrollment = await _dbcontext.Enrollments.FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
-                if (enrollment == null)
-                {
-                    return false; // Enrollment not found
-                }
-
-                Comment commentToUpdate = null;
-
-                if (commentDto.Id > 0)
-                {
-                    // Retrieve existing comment
-                    commentToUpdate = await _dbcontext.Comments.FindAsync(commentDto.Id);
-
-                    if (commentToUpdate == null)
-                    {
-                        return false; // Comment not found
-                    }
-
-                    // Update existing comment properties
-                    commentToUpdate.Content = commentDto.Content;
-                    commentToUpdate.AnswerTo = commentDto.AnswerTo;
-                    commentToUpdate.isUpdated = true; // Set isUpdated to true for updated comments
-                    commentToUpdate.Date = DateTime.UtcNow;
-                }
-                else
-                {
-                    // Create new comment
-                    var newComment = new Comment
-                    {
-                        Content = commentDto.Content,
-                        EnrollmentID = enrollment.Id,
-                        CourseID = courseId,
-                        AnswerTo = commentDto.AnswerTo,
-                        Date = DateTime.UtcNow,
-                        isReply = commentDto.isReply,
-                        isUpdated = false // Set isUpdated to false for new comments
-                    };
-
-                    _dbcontext.Comments.Add(newComment);
-                }
-
-                await _dbcontext.SaveChangesAsync();
-
-                return true; // Successfully added or updated the comment
-            }
-            catch (Exception ex)
-            {
-                // Log the exception or handle it as needed
-                return false; // Failed to add or update the comment
-            }
         }
 
         public async Task<OverviewDto> GetCourseOverViewById(int courseId)
@@ -512,82 +410,221 @@ namespace Udemy.EF.Repository
 
         public async Task<bool> SetStudentCourseLessonsStatus(int courseId, string userId, IEnumerable<LassonStatusDto> lessonStatusDto)
         {
-            var lessonProgressList = await _dbcontext.LessonProgresses
-                .Include(lp => lp.Enrollment)
-                .Where(lp => lp.Enrollment.UserId == userId && lp.Enrollment.CourseId == courseId)
-                .ToListAsync();
-
-            foreach (var lessonDto in lessonStatusDto)
-            {
-                var lessonProgress = lessonProgressList.FirstOrDefault(lp => lp.LessonID == lessonDto.LessonId);
-                if (lessonProgress != null)
-                {
-                    lessonProgress.IsCompleted = lessonDto.IsCompleted;
-                }
-                else
-                {
-                    // Handle case where LessonProgress doesn't exist for the lesson, maybe log or throw exception
-                }
-            }
-
             try
             {
-                await _dbcontext.SaveChangesAsync();
+                _unitOfWork.CreateTransaction();
+
+                var lessonProgressList = await _unitOfWork.Context.LessonProgresses
+                    .Include(lp => lp.Enrollment)
+                    .Where(lp => lp.Enrollment.UserId == userId && lp.Enrollment.CourseId == courseId)
+                    .ToListAsync();
+
+                foreach (var lessonDto in lessonStatusDto)
+                {
+                    var lessonProgress = lessonProgressList.FirstOrDefault(lp => lp.LessonID == lessonDto.LessonId);
+                    if (lessonProgress != null)
+                    {
+                        lessonProgress.IsCompleted = lessonDto.IsCompleted;
+                    }
+                    else
+                    {
+                        // Handle case where LessonProgress doesn't exist for the lesson, maybe log or throw exception
+                    }
+                }
+
+                _unitOfWork.Save();
+
+                _unitOfWork.Commit();
+
                 return true;
             }
             catch (Exception ex)
             {
                 // Handle exception, log it or return false indicating failure
+                _unitOfWork.Rollback();
                 return false;
             }
         }
-
         public async Task<CertificateDto> GetOrCreateCertificateDataByUserIdAndCourseId(string userId, int courseId)
         {
-            var certificateData = await _dbcontext.Certificates
-                .Include(c => c.Enrollment)
-                    .ThenInclude(e => e.User)
-                .Include(c => c.Enrollment)
-                    .ThenInclude(e => e.Course)
-                        .ThenInclude(c => c.Instructor)
-                .FirstOrDefaultAsync(c => c.Enrollment.UserId == userId && c.Enrollment.CourseId == courseId);
-
-            if (certificateData == null)
+            try
             {
-                certificateData = await CreateCertificateEntry(userId, courseId);
-            }
+                _unitOfWork.CreateTransaction();
 
-            if (certificateData != null)
-            {
-                var studentName = string.IsNullOrWhiteSpace(certificateData.Enrollment.User.FirstName) && string.IsNullOrWhiteSpace(certificateData.Enrollment.User.LastName)
-                    ? certificateData.Enrollment.User.UserName
-                    : certificateData.Enrollment.User.FirstName + " " + certificateData.Enrollment.User.LastName;
+                var certificateData = await _unitOfWork.Context.Certificates
+                    .Include(c => c.Enrollment)
+                        .ThenInclude(e => e.User)
+                    .Include(c => c.Enrollment)
+                        .ThenInclude(e => e.Course)
+                            .ThenInclude(c => c.Instructor)
+                    .FirstOrDefaultAsync(c => c.Enrollment.UserId == userId && c.Enrollment.CourseId == courseId);
 
-                var course = certificateData.Enrollment.Course;
-                float averageRate = await _dbcontext.Feedbacks
-                    .Where(f => f.Enrollment.CourseId == courseId)
-                    .AverageAsync(f => f.Rate);
-
-                var certificateDto = new CertificateDto
+                if (certificateData == null)
                 {
-                    StudentName = studentName,
-                    StudentImage = certificateData.Enrollment.User.Image, // Assuming there's a property for user image URL
-                    CourseName = course.Name,
-                    InstructorName = course.Instructor.FirstName + " " + course.Instructor.LastName,
-                    Rate = averageRate,
-                    Date = certificateData.Enrollment.EnrollmentDate.ToShortDateString(), // Assuming EnrollmentDate is a property of Enrollment
-                    TotalLectures = await _dbcontext.Lessons.CountAsync(l => l.Section.CourseID == courseId),
-                    TotalTime = await FormatTotalTime(courseId)
-                };
+                    certificateData = await CreateCertificateEntry(userId, courseId);
+                }
 
-                return certificateDto;
+                if (certificateData != null)
+                {
+                    var studentName = string.IsNullOrWhiteSpace(certificateData.Enrollment.User.FirstName) && string.IsNullOrWhiteSpace(certificateData.Enrollment.User.LastName)
+                        ? certificateData.Enrollment.User.UserName
+                        : certificateData.Enrollment.User.FirstName + " " + certificateData.Enrollment.User.LastName;
+
+                    var course = certificateData.Enrollment.Course;
+
+                    // Calculate average rate for the course
+                    var averageRate = await _unitOfWork.Context.Feedbacks
+                        .Where(f => f.Enrollment.CourseId == courseId)
+                        .AverageAsync(f => f.Rate);
+
+                    var certificateDto = new CertificateDto
+                    {
+                        StudentName = studentName,
+                        StudentImage = certificateData.Enrollment.User.Image, // Assuming there's a property for user image URL
+                        CourseName = course.Name,
+                        InstructorName = course.Instructor.FirstName + " " + course.Instructor.LastName,
+                        Rate = averageRate,
+                        Date = certificateData.Enrollment.EnrollmentDate.ToShortDateString(), // Assuming EnrollmentDate is a property of Enrollment
+                        TotalLectures = await _unitOfWork.Context.Lessons.CountAsync(l => l.Section.CourseID == courseId),
+                        TotalTime = await FormatTotalTime(courseId)
+                    };
+                    _unitOfWork.Save();
+
+                    _unitOfWork.Commit();
+
+                    return certificateDto;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle exception, log it or return null indicating failure
+                _unitOfWork.Rollback();
+                return null;
             }
 
             return null;
         }
+        public async Task<bool> SetStudentCommentOnCourse(int courseId, string userId, CourseCommentDto commentDto)
+        {
+            try
+            {
+                _unitOfWork.CreateTransaction();
 
+                // Check if the user is enrolled in the course
+                var enrollment = await _unitOfWork.Context.Enrollments
+                    .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
 
+                if (enrollment == null)
+                {
+                    return false; // Enrollment not found
+                }
 
+                Comment commentToUpdate = null;
+
+                if (commentDto.Id > 0)
+                {
+                    // Retrieve existing comment
+                    commentToUpdate = await _unitOfWork.Context.Comments.FindAsync(commentDto.Id);
+
+                    if (commentToUpdate == null)
+                    {
+                        return false; // Comment not found
+                    }
+
+                    // Update existing comment properties
+                    commentToUpdate.Content = commentDto.Content;
+                    commentToUpdate.AnswerTo = commentDto.AnswerTo;
+                    commentToUpdate.isUpdated = true; // Set IsUpdated to true for updated comments
+                    commentToUpdate.Date = DateTime.UtcNow;
+                }
+                else
+                {
+                    // Create new comment
+                    var newComment = new Comment
+                    {
+                        Content = commentDto.Content,
+                        EnrollmentID = enrollment.Id,
+                        CourseID = courseId,
+                        AnswerTo = commentDto.AnswerTo,
+                        Date = DateTime.UtcNow,
+                        isReply = commentDto.isReply,
+                        isUpdated = false // Set IsUpdated to false for new comments
+                    };
+
+                    _unitOfWork.Context.Comments.Add(newComment);
+                }
+
+                _unitOfWork.Save();
+
+                _unitOfWork.Commit();
+
+                return true; // Successfully added or updated the comment
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                _unitOfWork.Rollback();
+                return false; // Failed to add or update the comment
+            }
+        }
+        public async Task<bool> SetStudentReviewOnCourse(int courseId, string userId, FeedbackDto feedbackDto)
+        {
+
+            try
+            {
+                _unitOfWork.CreateTransaction();
+                // Find the enrollment record for the specified course and user
+                var enrollment = await _dbcontext.Enrollments
+                    .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+                if (enrollment == null)
+                {
+                    // If the enrollment record doesn't exist, return false indicating failure
+                    return false;
+                }
+
+                // Check if there's already a feedback record for this enrollment
+                var existingFeedback = await _dbcontext.Feedbacks
+                    .FirstOrDefaultAsync(f => f.EnrollmentId == enrollment.Id);
+
+                if (existingFeedback == null)
+                {
+                    // Create a new feedback record
+                    var newFeedback = new Feedback
+                    {
+                        EnrollmentId = enrollment.Id, // Set the EnrollmentId
+                        Rate = feedbackDto.Rate,
+                        Comment = feedbackDto.ReviewComment,
+                        Date = DateTime.UtcNow // Set the current date/time
+                    };
+
+                    // Add the new feedback record to the DbContext
+                    _dbcontext.Feedbacks.Add(newFeedback);
+                }
+                else
+                {
+                    // Update the existing feedback properties
+                    existingFeedback.Rate = feedbackDto.Rate;
+                    existingFeedback.Comment = feedbackDto.ReviewComment;
+                    existingFeedback.Date = DateTime.UtcNow; // Update the date/time
+                }
+
+                // Save changes to the database
+                _unitOfWork.Save();
+
+                // Commit the transaction
+                _unitOfWork.Commit();
+
+                // Return true to indicate success
+                return true;
+            }
+            catch (Exception)
+            {
+                // Rollback the transaction in case of an exception
+                _unitOfWork.Rollback();
+                throw; // Re-throw the exception
+            }
+        }
 
 
 

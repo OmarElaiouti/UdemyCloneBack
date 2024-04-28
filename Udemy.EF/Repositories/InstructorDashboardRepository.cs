@@ -12,6 +12,8 @@ using Udemy.Core.Models.UdemyContext;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Udemy.EF.Repository.NewFolder;
+using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
 
 
 namespace Udemy.EF.Repository

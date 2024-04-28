@@ -12,6 +12,8 @@ using Udemy.Core.Services;
 using Udemy.Core.Exceptions;
 using System.Reflection.Metadata;
 using Microsoft.AspNetCore.Identity;
+using Udemy.EF.Repository.NewFolder;
+using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
 
 namespace Udemy.EF.Repository
 {

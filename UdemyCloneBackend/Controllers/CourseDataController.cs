@@ -1,17 +1,20 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Udemy.Core.DTOs;
 using Udemy.Core.DTOs.CourseDtos;
 using Udemy.Core.DTOs.CoursePartsDtos;
 using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models;
-using UdemyCloneBackend.Services;
 using YamlDotNet.Core.Tokens;
 
 namespace Udemy.API.Controllers
 {
     [Route("api/course-data")]
     [ApiController]
+    [Authorize]
     public class CourseDataController : ControllerBase
     {
         private readonly ICourseDataRepository _courseDataService;
@@ -24,10 +27,11 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("api/course-sections/{courseId}")]
-        public async Task<ActionResult<CourseSectionsDto>> GetCourseSections([FromHeader(Name = "Authorization")] string token,int courseId)
+        [Authorize]
+        public async Task<ActionResult<CourseSectionsDto>> GetCourseSections(int courseId)
         {
 
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -53,10 +57,12 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("api/course-announcements/{courseId}")]
-        public async Task<ActionResult<IEnumerable<AnnouncmentDto>>> GetCourseAnnouncements([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+
+        public async Task<ActionResult<IEnumerable<AnnouncmentDto>>> GetCourseAnnouncements(int courseId)
         {
 
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -82,10 +88,12 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("api/course-reviews/{courseId}")]
-        public async Task<ActionResult<IEnumerable<FeedbackDto>>> GetCourseReviews([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+
+        public async Task<ActionResult<IEnumerable<FeedbackDto>>> GetCourseReviews(int courseId)
         {
 
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -111,10 +119,12 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("api/student-review/{courseId}")]
-        public async Task<ActionResult<FeedbackDto>> GetStudentReviewOnCourse([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+
+        public async Task<ActionResult<FeedbackDto>> GetStudentReviewOnCourse(int courseId)
         {
 
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -140,10 +150,12 @@ namespace Udemy.API.Controllers
         }
 
         [HttpPost("api/update-student-review/{courseId}")]
-        public async Task<ActionResult> SetStudentReviewOnCourse([FromHeader(Name = "Authorization")] string token, int courseId, [FromBody] FeedbackDto feedbackDto)
+        [Authorize]
+
+        public async Task<ActionResult> SetStudentReviewOnCourse( int courseId, [FromBody] FeedbackDto feedbackDto)
         {
 
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -165,9 +177,11 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("api/{courseId}/get-q&a")]
-        public async Task<ActionResult<IEnumerable<CourseCommentDto>>> GetCommentsOnCourse([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+
+        public async Task<ActionResult<IEnumerable<CourseCommentDto>>> GetCommentsOnCourse(int courseId)
         {
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -187,10 +201,12 @@ namespace Udemy.API.Controllers
         }
 
         [HttpPost("api/{courseId}/update-q&a")]
-        public async Task<ActionResult> SetStudentCommentOnCourse([FromHeader(Name = "Authorization")] string token, int courseId, [FromBody] CourseCommentDto comment)
+        [Authorize]
+
+        public async Task<ActionResult> SetStudentCommentOnCourse(int courseId, [FromBody] CourseCommentDto comment)
         {
 
-            string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+            string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrEmpty(userId))
             {
@@ -212,12 +228,14 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("api/{courseId}/get-overview")]
-        public async Task<ActionResult<OverviewDto>> GetCourseOverView([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+
+        public async Task<ActionResult<OverviewDto>> GetCourseOverView(int courseId)
         {
             try
             {
                 // Decode and validate the token
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
                     return BadRequest("Invalid token or token expired.");
@@ -244,11 +262,13 @@ namespace Udemy.API.Controllers
 
 
         [HttpPut("api/{courseId}/set-student-lessons-status")]
-        public async Task<ActionResult<bool>> SetStudentLessonsStatus([FromHeader(Name = "Authorization")] string token,int courseId, [FromBody] IEnumerable<LassonStatusDto> lessonStatusDto)
+        [Authorize]
+
+        public async Task<ActionResult<bool>> SetStudentLessonsStatus(int courseId, [FromBody] IEnumerable<LassonStatusDto> lessonStatusDto)
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
                     return BadRequest("Invalid token or token expired.");
@@ -273,11 +293,13 @@ namespace Udemy.API.Controllers
 
 
         [HttpGet("api/{courseId}/get-or-create-certificate")]
-        public async Task<ActionResult<CertificateDto>> GetOrCreateCertificateData([FromHeader(Name = "Authorization")] string token, int courseId)
+        [Authorize]
+
+        public async Task<ActionResult<CertificateDto>> GetOrCreateCertificateData(int courseId)
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
                     return BadRequest("Invalid token or token expired.");

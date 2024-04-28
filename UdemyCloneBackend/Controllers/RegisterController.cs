@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models.AuthModel;
-using UdemyCloneBackend.Services;
 
 namespace UdemyApi.Controllers
 {

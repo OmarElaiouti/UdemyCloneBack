@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Udemy.Core.DTOs;
-using Udemy.Core.Interfaces;
+using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models;
 
 namespace Udemy.API.Controllers
@@ -20,11 +20,11 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("get-categories")]
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
+        public ActionResult<IEnumerable<CategoryDto>> GetCategories()
         {
             try
             {
-                var categories = await _categoryService.GetCategories();
+                var categories = _categoryService.GetCategories();
                 return Ok(categories);
             }
             catch (Exception ex)
@@ -35,11 +35,11 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("{parentName}/subcategories-or-topics")]
-        public async Task<IActionResult> GetSubCategoriesOrTopicsByParentName(string parentName)
+        public IActionResult GetSubCategoriesOrTopicsByParentName(string parentName)
         {
             try
             {
-                var subCategoriesOrTopics = await _categoryService.GetSubCategoriesOrTopicsByParentName(parentName);
+                var subCategoriesOrTopics = _categoryService.GetSubCategoriesOrTopicsByParentName(parentName);
                 if (subCategoriesOrTopics == null)
                     return NotFound($"Parent category '{parentName}' not found.");
 
