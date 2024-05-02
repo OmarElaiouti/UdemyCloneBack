@@ -52,7 +52,7 @@ namespace Udemy.Api
 
             //Database Configration
             builder.Services.AddDbContext<UdemyContext>(options =>
-                options.UseSqlServer(builder.Configuration.GetConnectionString("Con1")));
+                options.UseSqlServer(builder.Configuration.GetConnectionString("Con")));
 
             // Configurations
             builder.Services.Configure<JWT>(builder.Configuration.GetSection("JWT"));
