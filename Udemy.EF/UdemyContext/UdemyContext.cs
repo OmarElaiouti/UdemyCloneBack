@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Udemy.DAl.Models;
 
-namespace Udemy.Core.Models.UdemyContext
+namespace Udemy.DAL.UdemyContext
 {
     public class UdemyContext : IdentityDbContext<User>
     {
@@ -34,6 +35,13 @@ namespace Udemy.Core.Models.UdemyContext
 
         public UdemyContext()
         {
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+
+            optionsBuilder.UseLazyLoadingProxies();
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

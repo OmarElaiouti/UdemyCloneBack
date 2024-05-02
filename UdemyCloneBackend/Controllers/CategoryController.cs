@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Udemy.BLL.Interfaces;
 using Udemy.Core.DTOs;
-using Udemy.Core.Interfaces.IRepositories;
 using Udemy.Core.Models;
 
 namespace Udemy.API.Controllers

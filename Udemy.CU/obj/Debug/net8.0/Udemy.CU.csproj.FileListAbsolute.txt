@@ -1,0 +1,12 @@
+E:\backend\Udemy.CU\bin\Debug\net8.0\Udemy.CU.deps.json
+E:\backend\Udemy.CU\bin\Debug\net8.0\Udemy.CU.dll
+E:\backend\Udemy.CU\bin\Debug\net8.0\Udemy.CU.pdb
+E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.GeneratedMSBuildEditorConfig.editorconfig
+E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.AssemblyInfoInputs.cache
+E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.AssemblyInfo.cs
+E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.csproj.CoreCompileInputs.cache
+E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.sourcelink.json
+E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.dll
+E:\backend\Udemy.CU\obj\Debug\net8.0\refint\Udemy.CU.dll
+E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.pdb
+E:\backend\Udemy.CU\obj\Debug\net8.0\ref\Udemy.CU.dll

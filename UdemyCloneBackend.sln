@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34601.278
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UdemyApi", "UdemyCloneBackend\UdemyApi.csproj", "{6F79FEB8-5C49-4DC5-B6DA-354CD599EC54}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Udemy.Api", "UdemyCloneBackend\Udemy.Api.csproj", "{6F79FEB8-5C49-4DC5-B6DA-354CD599EC54}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Udemy.Core", "Udemy.Core\Udemy.Core.csproj", "{A05F16C8-1138-45F2-83A9-50DE0A45295A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Udemy.DAL", "Udemy.EF\Udemy.DAL.csproj", "{63D19268-33C8-4121-B583-5398D5E47B21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Udemy.EF", "Udemy.EF\Udemy.EF.csproj", "{63D19268-33C8-4121-B583-5398D5E47B21}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Udemy.CU", "Udemy.CU\Udemy.CU.csproj", "{4AF75055-A2DA-429F-88E4-FA8C616E2E19}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Udemy.BLL", "ClassLibrary1\Udemy.BLL.csproj", "{54C361AC-AE18-400F-8339-CB0040B265E7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +21,18 @@ Global
 		{6F79FEB8-5C49-4DC5-B6DA-354CD599EC54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F79FEB8-5C49-4DC5-B6DA-354CD599EC54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F79FEB8-5C49-4DC5-B6DA-354CD599EC54}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A05F16C8-1138-45F2-83A9-50DE0A45295A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A05F16C8-1138-45F2-83A9-50DE0A45295A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A05F16C8-1138-45F2-83A9-50DE0A45295A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A05F16C8-1138-45F2-83A9-50DE0A45295A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{63D19268-33C8-4121-B583-5398D5E47B21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{63D19268-33C8-4121-B583-5398D5E47B21}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63D19268-33C8-4121-B583-5398D5E47B21}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63D19268-33C8-4121-B583-5398D5E47B21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4AF75055-A2DA-429F-88E4-FA8C616E2E19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4AF75055-A2DA-429F-88E4-FA8C616E2E19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4AF75055-A2DA-429F-88E4-FA8C616E2E19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4AF75055-A2DA-429F-88E4-FA8C616E2E19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{54C361AC-AE18-400F-8339-CB0040B265E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{54C361AC-AE18-400F-8339-CB0040B265E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{54C361AC-AE18-400F-8339-CB0040B265E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{54C361AC-AE18-400F-8339-CB0040B265E7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

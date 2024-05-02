@@ -5,16 +5,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Udemy.EF.UnitOfWork
+namespace Udemy.DAL.UnitOfWork
 {
     public interface IUnitOfWork<TContext> : IDisposable where TContext : DbContext
     {
         TContext Context { get; }
-        void CreateTransaction();
-        void Commit();
-        void Rollback();
-        void Save();
 
-    }    
-    
+        Task CreateTransactionAsync();
+        Task CommitAsync();
+        Task RollbackAsync();
+        Task SaveAsync();
+
+    }
 }
