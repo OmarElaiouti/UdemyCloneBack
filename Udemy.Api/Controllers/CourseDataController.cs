@@ -1,32 +1,28 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Udemy.Core.DTOs;
-using Udemy.Core.DTOs.CourseDtos;
-using Udemy.Core.DTOs.CoursePartsDtos;
-using Udemy.Core.Interfaces;
-using Udemy.Core.Interfaces.IRepositories;
-using Udemy.Core.Models;
-using YamlDotNet.Core.Tokens;
+using Udemy.BLL.Interfaces;
+using Udemy.BLL.Services.Interfaces;
+using Udemy.DAL.DTOs;
+using Udemy.DAL.DTOs.CourseDtos;
+using Udemy.DAL.DTOs.CoursePartsDtos;
+
 
 namespace Udemy.API.Controllers
 {
-    [Route("api/course-data")]
+    [Route("course-class")]
     [ApiController]
     [Authorize]
     public class CourseDataController : ControllerBase
     {
-        private readonly ICourseDataRepository _courseDataService;
-        private readonly IAuthService _authService;
+        private readonly ICourseDataService _courseDataService;
 
-        public CourseDataController(ICourseDataRepository courseDataService, IAuthService authService)
+        public CourseDataController(ICourseDataService courseDataService)
         {
             _courseDataService = courseDataService;
-            _authService = authService;
         }
 
-        [HttpGet("api/course-sections/{courseId}")]
+        [HttpGet("course-sections/{courseId}")]
         [Authorize]
         public async Task<ActionResult<CourseSectionsDto>> GetCourseSections(int courseId)
         {
@@ -56,9 +52,9 @@ namespace Udemy.API.Controllers
 
         }
 
-        [HttpGet("api/course-announcements/{courseId}")]
-        [Authorize]
 
+        [HttpGet("course-announcements/{courseId}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<AnnouncmentDto>>> GetCourseAnnouncements(int courseId)
         {
 
@@ -87,9 +83,8 @@ namespace Udemy.API.Controllers
 
         }
 
-        [HttpGet("api/course-reviews/{courseId}")]
+        [HttpGet("course-reviews/{courseId}")]
         [Authorize]
-
         public async Task<ActionResult<IEnumerable<FeedbackDto>>> GetCourseReviews(int courseId)
         {
 
@@ -118,9 +113,8 @@ namespace Udemy.API.Controllers
 
         }
 
-        [HttpGet("api/student-review/{courseId}")]
+        [HttpGet("student-review/{courseId}")]
         [Authorize]
-
         public async Task<ActionResult<FeedbackDto>> GetStudentReviewOnCourse(int courseId)
         {
 
@@ -149,9 +143,8 @@ namespace Udemy.API.Controllers
 
         }
 
-        [HttpPost("api/update-student-review/{courseId}")]
+        [HttpPost("update-student-review/{courseId}")]
         [Authorize]
-
         public async Task<ActionResult> SetStudentReviewOnCourse( int courseId, [FromBody] FeedbackDto feedbackDto)
         {
 
@@ -176,9 +169,8 @@ namespace Udemy.API.Controllers
 
         }
 
-        [HttpGet("api/{courseId}/get-q&a")]
+        [HttpGet("{courseId}/get-q&a")]
         [Authorize]
-
         public async Task<ActionResult<IEnumerable<CourseCommentDto>>> GetCommentsOnCourse(int courseId)
         {
             string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -200,9 +192,8 @@ namespace Udemy.API.Controllers
 
         }
 
-        [HttpPost("api/{courseId}/update-q&a")]
+        [HttpPost("{courseId}/update-q&a")]
         [Authorize]
-
         public async Task<ActionResult> SetStudentCommentOnCourse(int courseId, [FromBody] CourseCommentDto comment)
         {
 
@@ -227,14 +218,12 @@ namespace Udemy.API.Controllers
 
         }
 
-        [HttpGet("api/{courseId}/get-overview")]
+        [HttpGet("{courseId}/get-overview")]
         [Authorize]
-
         public async Task<ActionResult<OverviewDto>> GetCourseOverView(int courseId)
         {
             try
             {
-                // Decode and validate the token
                 string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -261,9 +250,8 @@ namespace Udemy.API.Controllers
         }
 
 
-        [HttpPut("api/{courseId}/set-student-lessons-status")]
+        [HttpPut("{courseId}/set-student-lessons-status")]
         [Authorize]
-
         public async Task<ActionResult<bool>> SetStudentLessonsStatus(int courseId, [FromBody] IEnumerable<LassonStatusDto> lessonStatusDto)
         {
             try
@@ -292,9 +280,8 @@ namespace Udemy.API.Controllers
         }
 
 
-        [HttpGet("api/{courseId}/get-or-create-certificate")]
+        [HttpGet("{courseId}/get-or-create-certificate")]
         [Authorize]
-
         public async Task<ActionResult<CertificateDto>> GetOrCreateCertificateData(int courseId)
         {
             try

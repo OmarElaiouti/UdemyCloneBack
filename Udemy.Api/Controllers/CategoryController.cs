@@ -1,25 +1,34 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Udemy.BLL.Interfaces;
-using Udemy.Core.DTOs;
-using Udemy.Core.Models;
+using Udemy.BLL.Services.Interfaces;
+using Udemy.CU.Exceptions;
+using Udemy.DAL.DTOs;
+using UdemyApi.Controllers;
 
 namespace Udemy.API.Controllers
 {
 
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly ICategoryRepository _categoryService;
-
-        public CategoryController(ICategoryRepository categoryService)
+        private readonly ICategoryService _categoryService;
+        private readonly IInstructorService _instructorService;
+        private readonly ILogger<UserController> _logger;
+        public CategoryController(ILogger<UserController> logger,
+            ICategoryService categoryService,
+            IInstructorService instructorService
+            )
         {
             _categoryService = categoryService;
+            _logger = logger;
+            _instructorService = instructorService;
 
-        }
 
-        [HttpGet("get-categories")]
+    }
+
+    [HttpGet("get-categories")]
         public ActionResult<IEnumerable<CategoryDto>> GetCategories()
         {
             try
@@ -29,7 +38,7 @@ namespace Udemy.API.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
+                _logger.LogError(ex, "Error retrieving categories");
                 return StatusCode(500, "An error occurred while retrieving categories.");
             }
         }
@@ -49,6 +58,27 @@ namespace Udemy.API.Controllers
             {
                 // Log the exception
                 return StatusCode(500, "An error occurred while retrieving subcategories/topics.");
+            }
+        }
+
+        [HttpGet("instructors/{categoryName}")]
+        public async Task<IActionResult> GetInstructorsByCategoryName(string categoryName)
+        {
+            try
+            {
+                var instructors = await _instructorService.GetInstructorsByCategoryName(categoryName);
+                _logger.LogInformation("Retrieved instructors by category name successfully.");
+                return Ok(instructors);
+            }
+            catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving instructors by category name.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving instructors.");
             }
         }
 

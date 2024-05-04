@@ -1,5 +1,4 @@
-﻿using Udemy.Core.Models;
-
+﻿
 namespace Udemy.DAL.DTOs.CoursePartsDtos
 {
     public class LessonDto

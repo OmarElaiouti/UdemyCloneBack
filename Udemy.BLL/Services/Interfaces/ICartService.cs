@@ -5,9 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Udemy.DAl.Models;
 
-namespace Udemy.DAL.Interfaces
+namespace Udemy.BLL.Interfaces
 {
-    public interface ICartRepository
+    public interface ICartService
     {
         Task<Cart> GetCartByUserIdAsync(string userId);
 

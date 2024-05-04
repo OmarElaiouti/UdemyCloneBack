@@ -1,28 +1,29 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Udemy.Core.DTOs.CourseDtos;
-using Udemy.Core.Interfaces;
-using Udemy.Core.Interfaces.IRepositories;
-using Udemy.Core.Models;
-using Udemy.EF.Repository;
+using Udemy.BLL.Interfaces;
+using Udemy.BLL.Services.Interfaces;
+using Udemy.DAL.DTOs.CourseDtos;
+
 
 namespace UdemyApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class CoursesController : ControllerBase
     {
-        private readonly ICourseRepository _courseService;
-        private readonly ICartRepository _cartService;
+        private readonly ICourseService _courseService;
+        private readonly IUserService _userService;
 
-        private readonly IAuthService  _authService;
 
-        public CoursesController(ICourseRepository courseService, ICartRepository cartService, IAuthService authService)
+        public CoursesController(
+            ICourseService courseService,
+            IUserService userService
+            )
         {
             _courseService = courseService;
-            _authService = authService;
-            _cartService = cartService;
+            _userService = userService;
+
         }
 
         [HttpGet("searched-courses")]
@@ -44,7 +45,7 @@ namespace UdemyApi.Controllers
         {
             try
             {
-                var courses = await _courseService.SearchCoursesByNameAsync(searchHitory,5);
+                var courses = await _courseService.SearchCoursesByNameWithObjectivesAsync(searchHitory,5);
                 return Ok(courses);
             }
             catch (Exception ex)
@@ -88,7 +89,7 @@ namespace UdemyApi.Controllers
                     return BadRequest("Invalid token or token expired.");
                 }
 
-                var courses = await _courseService.GetCoursesInCartByUserId(userId);
+                var courses = await _userService.GetCoursesInCartByUserId(userId);
 
                 if (courses == null)
                 {
@@ -118,7 +119,7 @@ namespace UdemyApi.Controllers
                     return BadRequest("Invalid token or token expired.");
                 }
 
-                var courses = await _courseService.GetCoursesInWishlistByUserId(userId);
+                var courses = await _userService.GetCoursesInWishlistByUserId(userId);
 
                 if (courses == null)
                 {
@@ -145,7 +146,7 @@ namespace UdemyApi.Controllers
                     return BadRequest("Invalid token or token expired.");
                 }
 
-                var courses = await _courseService.GetEnrolledInCoursesByUserId(userId);
+                var courses = await _userService.GetEnrolledInCoursesByUserId(userId);
 
                 if (courses == null)
                 {
@@ -233,7 +234,7 @@ namespace UdemyApi.Controllers
 
             try
             {
-                var addedCourse = await _courseService.AddCourseToCartByUserIdAsync(userId, courseId);
+                var addedCourse = await _userService.AddCourseToCartByUserIdAsync(userId, courseId);
                 return Ok(addedCourse);
             }
             catch (Exception ex)
@@ -255,7 +256,7 @@ namespace UdemyApi.Controllers
 
             try
             {
-                var addedCourse = await _courseService.AddCourseToWishlistByUserIdAsync(userId, courseId);
+                var addedCourse = await _userService.AddCourseToWishlistByUserIdAsync(userId, courseId);
                 return Ok(addedCourse);
             }
             catch (Exception ex)
@@ -277,7 +278,7 @@ namespace UdemyApi.Controllers
 
             try
             {
-                var RemovedCourse = await _courseService.RemoveCourseFromWishlistByUserIdAsync(userId, courseId);
+                var RemovedCourse = await _userService.RemoveCourseFromWishlistByUserIdAsync(userId, courseId);
                 return Ok("The course removed from the whishlist successfully");
             }
             catch (Exception ex)
@@ -299,7 +300,7 @@ namespace UdemyApi.Controllers
 
             try
             {
-                var RemovedCourse = await _courseService.RemoveCourseFromCartByUserIdAsync(userId, courseId);
+                var RemovedCourse = await _userService.RemoveCourseFromCartByUserIdAsync(userId, courseId);
                 return Ok("The course removed from the cart successfully");
             }
             catch (Exception ex)

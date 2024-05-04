@@ -1,33 +1,30 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System.Security.Claims;
-using Udemy.Core.DTOs;
-using Udemy.Core.Interfaces;
-using Udemy.Core.Interfaces.IRepositories;
-using Udemy.Core.Models;
-using Udemy.EF.Repository;
-using YamlDotNet.Core.Tokens;
+using Udemy.BLL.Interfaces;
+using Udemy.DAL.DTOs;
+
 
 namespace UdemyApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [Authorize]
     public class UserController : ControllerBase
     {
-        private readonly IUserRepository _userService;
-        private readonly IAuthService _authService;
-        private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IUserService _userService;
+        private readonly ILogger<UserController> _logger;
 
-        public UserController(IUserRepository usereService, IAuthService authService, IWebHostEnvironment hostEnvironment)
+
+        public UserController(ILogger<UserController> logger, IUserService usereService, IWebHostEnvironment hostEnvironment)
         {
             _userService = usereService;
-            _authService = authService;
-            _hostEnvironment = hostEnvironment;
+            _logger = logger;
         }
 
         [HttpGet("get-user")]
@@ -52,17 +49,17 @@ namespace UdemyApi.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, ex);
+                return StatusCode(500);
             }
         }
 
+
         [HttpPost("edit-user-data")]
-        public async Task<IActionResult> UpdateUser([FromHeader(Name = "Authorization")] string token, [FromBody] UserDto userDto)
+        public async Task<IActionResult> UpdateUser([FromBody] UserDto userDto)
         {
             try
             {
-
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -74,17 +71,17 @@ namespace UdemyApi.Controllers
             catch (Exception ex)
             {
                 // Log the exception
-                return StatusCode(500, $"An error occurred: {ex.Message}");
+                return StatusCode(500, $"An error occurred");
             }
         }
 
         [HttpPost("create-transaction")]
-        public async Task<IActionResult> CreateEnrollment([FromHeader(Name = "Authorization")] string token)
+        public async Task<IActionResult> CreateEnrollment()
         {
             try
             {
                 // Check if transactionDto is valid and contains necessary data
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -98,18 +95,17 @@ namespace UdemyApi.Controllers
             }
             catch (Exception ex)
             {
-                // Handle exception (e.g., return error response)
-                return StatusCode(500, "Failed to create enrollment: " + ex);
+                return StatusCode(500, "Failed to create enrollment");
             }
         }
 
         [HttpDelete("delete-account")]
-        public async Task<IActionResult> DeleteAccount([FromHeader(Name = "Authorization")] string token)
+        public async Task<IActionResult> DeleteAccount()
         {
             try
             {
                 // Retrieve the user ID from the claims in the authentication token
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -124,7 +120,7 @@ namespace UdemyApi.Controllers
             catch (Exception ex)
             {
                 // Log the error
-                Console.WriteLine("Error deleting account: " + ex.Message);
+                _logger.LogError("Error deleting account: " + ex.Message);
                 return StatusCode(500, "An error occurred while deleting the account.");
             }
         }
@@ -132,59 +128,43 @@ namespace UdemyApi.Controllers
 
 
         [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadImage([FromHeader(Name = "Authorization")] string token, IFormFile file)
+        public async Task<IActionResult> UploadImage([FromBody] string filePath)
         {
             try
             {
                 // Check if user exists
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
                     return BadRequest("Invalid token or token expired.");
                 }
 
-                // Check if the file exists
-                if (file == null || file.Length == 0)
+                var (success, message) = await _userService.UpdateUserImage(userId, filePath);
+
+                if (success)
                 {
-                    return BadRequest("Invalid file.");
+                    return Ok(new { message = "User image updated successfully.", filePath = message });
                 }
-
-                // Define the upload directory
-                var uploadDir = Path.Combine(_hostEnvironment.WebRootPath, "userImages");
-
-                // Create the directory if it doesn't exist
-                if (!Directory.Exists(uploadDir))
+                else
                 {
-                    Directory.CreateDirectory(uploadDir);
+                    return BadRequest(new { error = message });
                 }
-
-                // Define the file path
-                var filePath = Path.Combine(uploadDir, $"{userId}.jpg");
-
-                // Save the file to the server
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await file.CopyToAsync(stream);
-                }
-
-                await _userService.UpdateUserImage(userId,filePath);
-
-                return Ok("Image uploaded successfully.");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"Error uploading image: {ex.Message}");
+                _logger.LogError($"Error updating user image: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Error updating user image");
             }
         }
 
         [HttpGet("add-instructor-role")]
-        public async Task<IActionResult> AddRoleToUser([FromHeader(Name = "Authorization")] string token)
+        public async Task<IActionResult> AddRoleToUser()
         {
             try
             {
                 // Validate token
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
                     return BadRequest();
@@ -203,7 +183,7 @@ namespace UdemyApi.Controllers
             }
             catch (Exception ex)
             {
-                // logger.LogError(ex, "Error occurred while adding role to user.");
+                _logger.LogError("Error occurred while adding role to user.",ex.Message);
 
                 return StatusCode(500, "An error occurred while processing your request.");
             }

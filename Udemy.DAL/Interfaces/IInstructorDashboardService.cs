@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Udemy.DAL.Interfaces
+namespace Udemy.BLL.Services.Interfaces
 {
-    public interface IInstructorDashboardRepository
+    public interface IInstructorDashboardService
     {
     }
 }

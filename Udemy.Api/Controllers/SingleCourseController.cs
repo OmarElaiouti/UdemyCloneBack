@@ -1,22 +1,20 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Udemy.Core.DTOs.CourseDtos;
-using Udemy.Core.Interfaces;
-using Udemy.Core.Interfaces.IRepositories;
+﻿using Microsoft.AspNetCore.Mvc;
+using Udemy.BLL.Interfaces;
+using Udemy.DAL.DTOs;
+using Udemy.DAL.DTOs.CourseDtos;
+
 
 namespace UdemyApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("courseInfo")]
     [ApiController]
     public class SingleCourseController : ControllerBase
     {
-        private readonly ICourseDataRepository _courseDataService;
-        private readonly IAuthService _authService;
+        private readonly ICourseDataService _courseDataService;
 
-        public SingleCourseController(ICourseDataRepository courseDataService, IAuthService authService)
+        public SingleCourseController(ICourseDataService courseDataService)
         {
             _courseDataService = courseDataService;
-            _authService = authService;
         }
 
 
@@ -33,8 +31,9 @@ namespace UdemyApi.Controllers
             return Ok(course);
         }
 
+        
         [HttpGet("{courseId}/instructor")]
-        public async Task<ActionResult<CourseInstructorDto>> GetCourseInstructor(int courseId)
+        public async Task<ActionResult<InstructorDto>> GetCourseInstructor(int courseId)
         {
             var instructorDto = await _courseDataService.GetCourseInstructor(courseId);
 
@@ -43,7 +42,7 @@ namespace UdemyApi.Controllers
                 return NotFound(); // Return 404 Not Found if instructor not found
             }
 
-            return Ok(instructorDto); // Return 200 OK with the instructor DTO
+            return Ok(instructorDto); 
         }
 
         [HttpGet("{courseId}/sections")]
@@ -66,7 +65,7 @@ namespace UdemyApi.Controllers
 
             if (relatedData == null)
             {
-                return NotFound(); // Or return any appropriate response for no data found
+                return NotFound(); 
             }
 
             return Ok(relatedData);

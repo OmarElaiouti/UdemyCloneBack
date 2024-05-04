@@ -1,27 +1,27 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Udemy.Core.DTOs;
-using Udemy.Core.DTOs.CourseDtos;
-using Udemy.Core.DTOs.CoursePartsDtos;
-using Udemy.Core.Interfaces;
-using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
-using Udemy.Core.Models;
-using Udemy.Core.Models.UdemyContext;
-using Udemy.EF.Repository.NewFolder;
-using Udemy.EF.UnitOfWork;
-namespace Udemy.DAl.Repository
+using Udemy.BLL.Interfaces;
+using Udemy.DAl.Models;
+using Udemy.DAL.GenericBaseRepository.BaseRepository;
+using Udemy.DAL.Context;
+using Udemy.DAL.DTOs;
+using Udemy.DAL.DTOs.CourseDtos;
+using Udemy.DAL.DTOs.CoursePartsDtos;
+using Udemy.DAL.StaticClasses;
+using Udemy.DAL.UnitOfWork;
+
+namespace Udemy.BLL.Services
 {
 
 
-    public class CourseDataRepository : BaseRepository<UdemyContext>, ICourseDataRepository
+    public class CourseDataService : ICourseDataService
     {
         private readonly UdemyContext _dbcontext;
-        private readonly IBaseRepository<Course> _courseDataRepository;
         private readonly IUnitOfWork<UdemyContext> _unitOfWork;
 
-        public CourseDataRepository(IBaseRepository<Course> courseDataRepository, IUnitOfWork<UdemyContext> unitOfWork, UdemyContext dbcontext) : base(dbcontext)
+
+        public CourseDataService(IBaseRepository<Course> courseDataRepository, IUnitOfWork<UdemyContext> unitOfWork, UdemyContext dbcontext)
         {
             _dbcontext = dbcontext;
-            _courseDataRepository = courseDataRepository;
             _unitOfWork = unitOfWork;
         }
 
@@ -30,8 +30,6 @@ namespace Udemy.DAl.Repository
         public async Task<CourseSectionsDto> GetSectionsByCourseIdAsync(int courseId, string userId)
         {
             var sections = await _dbcontext.Sections
-                .Include(s => s.Lessons).ThenInclude(l => l.Notes)
-                .Include(s => s.Lessons).ThenInclude(l => l.LessonProgress)
                 .Where(s => s.CourseID == courseId)
                 .ToListAsync();
 
@@ -46,8 +44,6 @@ namespace Udemy.DAl.Repository
         public async Task<IEnumerable<AnnouncmentDto>> GetAnnouncementByCourseIdAsync(int courseId)
         {
             var announcements = await _dbcontext.Announcements
-                .Include(a => a.Course)
-                .ThenInclude(c => c.Instructor)
                 .Where(s => s.CourseID == courseId)
                 .ToListAsync();
 
@@ -66,7 +62,6 @@ namespace Udemy.DAl.Repository
         public async Task<IEnumerable<FeedbackDto>> GetReviewsByCourseIdAsync(int courseId)
         {
             var courseReviews = await _dbcontext.Feedbacks
-        .Include(f => f.Enrollment.User)
         .Where(f => f.Enrollment.CourseId == courseId)
         .Select(f => new FeedbackDto
         {
@@ -84,8 +79,6 @@ namespace Udemy.DAl.Repository
         public async Task<FeedbackDto> GetStudentReviewOnCourseByCourseIdAsync(int courseId, string userId)
         {
             var feedback = await _dbcontext.Feedbacks
-                .Include(f => f.Enrollment)
-                .ThenInclude(e => e.User)
                 .FirstOrDefaultAsync(f => f.Enrollment.UserId == userId && f.Enrollment.CourseId == courseId);
 
             if (feedback == null)
@@ -115,8 +108,6 @@ namespace Udemy.DAl.Repository
         public async Task<IEnumerable<CourseCommentDto>> GetCommentsByCourseIdAsync(int courseId, string userId)
         {
             var courseComments = await _dbcontext.Comments
-                .Include(c => c.Enrollment)
-                .ThenInclude(e => e.User)
                 .Where(c => c.Enrollment.CourseId == courseId)
                 .ToListAsync();
 
@@ -145,10 +136,6 @@ namespace Udemy.DAl.Repository
             {
                 // Retrieve course details including related entities
                 var course = await _dbcontext.Courses
-                    .Include(c => c.Objectives)
-                    .Include(c => c.Requirements)
-                    .Include(c => c.Sections).ThenInclude(s => s.Lessons)
-                    .Include(c => c.Instructor).ThenInclude(i => i.CreatedCourses).ThenInclude(c => c.Enrollments).ThenInclude(e => e.Feedback)
                     .FirstOrDefaultAsync(c => c.CourseID == courseId);
 
                 if (course == null)
@@ -197,7 +184,7 @@ namespace Udemy.DAl.Repository
                 overviewDto.TotalLessons = await _dbcontext.Lessons.CountAsync(l => l.Section.CourseID == courseId);
 
                 // Calculate and assign total time in minutes for all lessons in the course
-                overviewDto.TotalHours = FormatTotalHours(await _dbcontext.Lessons
+                overviewDto.TotalHours = Format.FormatTotalHours(await _dbcontext.Lessons
                     .Where(l => l.Section.CourseID == courseId)
                     .SumAsync(l => l.Duration));
 
@@ -213,11 +200,6 @@ namespace Udemy.DAl.Repository
         public async Task<SingleCourseDto> GetSingleCourse(int courseId)
         {
             var course = await _dbcontext.Courses
-                .Include(c => c.Instructor)
-                .Include(c => c.Enrollments).ThenInclude(e => e.Feedback).ThenInclude(f => f.Rate)
-                .Include(c => c.Sections).ThenInclude(s => s.Lessons)
-                .Include(c => c.Category)
-                .ThenInclude(cat => cat.ParentCategory).ThenInclude(cat => cat.ParentCategory) // Include the parent category
                 .FirstOrDefaultAsync(c => c.CourseID == courseId);
 
             if (course == null)
@@ -260,21 +242,17 @@ namespace Udemy.DAl.Repository
             return singleCourseDto;
         }
 
-        public async Task<CourseInstructorDto> GetCourseInstructor(int courseId)
+        public async Task<InstructorWithHisCoursesDto> GetCourseInstructor(int courseId)
         {
             var instructorDto = await _dbcontext.Courses
-                .Include(c => c.Instructor)
-                    .ThenInclude(i => i.CreatedCourses)
-                        .ThenInclude(c => c.Enrollments)
-                            .ThenInclude(e => e.Feedback)
                 .Where(c => c.CourseID == courseId)
-                .Select(c => new CourseInstructorDto
+                .Select(c => new InstructorWithHisCoursesDto
                 {
                     InstructorId = c.InstructorID,
                     Name = $"{c.Instructor.FirstName ?? "Unknown"} {c.Instructor.LastName ?? "Unknown"}",
                     Image = c.Instructor.Image ?? "",
                     HeadLine = c.Instructor.Headline ?? "",
-                    Boiography = c.Instructor.Biography ?? "",
+                    Biography = c.Instructor.Biography ?? "",
                     Rate = c.Instructor.CreatedCourses
                                 .SelectMany(cc => cc.Enrollments)
                                 .Where(e => e.Feedback != null)
@@ -287,7 +265,7 @@ namespace Udemy.DAl.Repository
                         Image = c.Cover,
                         Name = c.Name,
                         InstructorName = c.Instructor.FirstName ?? "Unknown" + " " + c.Instructor.FirstName ?? "Unknown",
-                        Rate = CalculateAverageRate(c),
+                        Rate = Calculations.CalculateAverageRate(c),
                         Price = c.Price,
                         ReviewersNumber = c.Enrollments.Count(e => e.Feedback != null) != 0 ? c.Enrollments.Count(e => e.Feedback != null) : 0,
                         Objectives = c.Objectives.Select(o => new ObjectiveDto
@@ -296,7 +274,7 @@ namespace Udemy.DAl.Repository
                             Content = o.Description
                         }
 
-                )
+                        )
 
 
                     }) ?? Enumerable.Empty<CourseWithObjectivesDto>(),
@@ -308,7 +286,7 @@ namespace Udemy.DAl.Repository
                                         .SelectMany(cc => cc.Enrollments)
                                         .Count(e => e.Feedback != null),
                 })
-                .FirstOrDefaultAsync();
+                .SingleOrDefaultAsync();
 
             // Handle case when the course or instructor is not found
             if (instructorDto == null)
@@ -323,15 +301,13 @@ namespace Udemy.DAl.Repository
         public async Task<CourseSectionsDto> GetCourseSections(int courseId)
         {
             var sectionsDto = await _dbcontext.Sections
-                .Include(s => s.Lessons)
-                .ThenInclude(l => l.LessonProgress)
                 .Where(s => s.CourseID == courseId)
                 .Select(s => new SectionDto
                 {
                     SectionId = s.SectionID,
                     SectionName = s.Title,
                     TotalLessons = s.Lessons.Count,
-                    TotalMinutes = FormatTotalHours(s.Lessons.Sum(l => l.Duration)),
+                    TotalMinutes = Format.FormatTotalHours(s.Lessons.Sum(l => l.Duration)),
                     Lessons = s.Lessons.Select(l => new LessonDto
                     {
                         LessonId = l.LessonID,
@@ -359,8 +335,6 @@ namespace Udemy.DAl.Repository
         {
             // Retrieve featured feedback
             var featuredFeedback = await _dbcontext.Feedbacks
-                .Include(f => f.Enrollment)
-                    .ThenInclude(e => e.User)
                 .Where(f => f.Enrollment.CourseId == courseId)
                 .OrderByDescending(f => f.Date)
                 .Select(f => new FeedbackDto
@@ -412,7 +386,7 @@ namespace Udemy.DAl.Repository
         {
             try
             {
-                _unitOfWork.CreateTransaction();
+                await _unitOfWork.CreateTransactionAsync();
 
                 var lessonProgressList = await _unitOfWork.Context.LessonProgresses
                     .Include(lp => lp.Enrollment)
@@ -432,40 +406,49 @@ namespace Udemy.DAl.Repository
                     }
                 }
 
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
 
                 return true;
             }
             catch (Exception ex)
             {
                 // Handle exception, log it or return false indicating failure
-                _unitOfWork.Rollback();
+                await _unitOfWork.RollbackAsync();
                 return false;
             }
         }
+        
+        
+        
         public async Task<CertificateDto> GetOrCreateCertificateDataByUserIdAndCourseId(string userId, int courseId)
         {
             try
             {
-                _unitOfWork.CreateTransaction();
+                await _unitOfWork.CreateTransactionAsync();
 
                 var certificateData = await _unitOfWork.Context.Certificates
-                    .Include(c => c.Enrollment)
-                        .ThenInclude(e => e.User)
-                    .Include(c => c.Enrollment)
-                        .ThenInclude(e => e.Course)
-                            .ThenInclude(c => c.Instructor)
                     .FirstOrDefaultAsync(c => c.Enrollment.UserId == userId && c.Enrollment.CourseId == courseId);
 
                 if (certificateData == null)
                 {
-                    certificateData = await CreateCertificateEntry(userId, courseId);
-                }
 
-                if (certificateData != null)
-                {
+                    var enrollment = await _unitOfWork.Context.Enrollments
+                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+                    if (enrollment == null)
+                        return null;
+
+                    var newCertificate = new Certificate
+                    {
+                        EnrollmentID = enrollment.Id,
+
+                    };
+
+                    _unitOfWork.Context.Certificates.Add(newCertificate);
+                }
+                else{
                     var studentName = string.IsNullOrWhiteSpace(certificateData.Enrollment.User.FirstName) && string.IsNullOrWhiteSpace(certificateData.Enrollment.User.LastName)
                         ? certificateData.Enrollment.User.UserName
                         : certificateData.Enrollment.User.FirstName + " " + certificateData.Enrollment.User.LastName;
@@ -488,9 +471,9 @@ namespace Udemy.DAl.Repository
                         TotalLectures = await _unitOfWork.Context.Lessons.CountAsync(l => l.Section.CourseID == courseId),
                         TotalTime = await FormatTotalTime(courseId)
                     };
-                    _unitOfWork.Save();
+                    await _unitOfWork.SaveAsync();
 
-                    _unitOfWork.Commit();
+                    await _unitOfWork.CommitAsync();
 
                     return certificateDto;
                 }
@@ -498,7 +481,7 @@ namespace Udemy.DAl.Repository
             catch (Exception ex)
             {
                 // Handle exception, log it or return null indicating failure
-                _unitOfWork.Rollback();
+                await _unitOfWork.RollbackAsync();
                 return null;
             }
 
@@ -508,7 +491,7 @@ namespace Udemy.DAl.Repository
         {
             try
             {
-                _unitOfWork.CreateTransaction();
+                await _unitOfWork.CreateTransactionAsync();
 
                 // Check if the user is enrolled in the course
                 var enrollment = await _unitOfWork.Context.Enrollments
@@ -554,16 +537,16 @@ namespace Udemy.DAl.Repository
                     _unitOfWork.Context.Comments.Add(newComment);
                 }
 
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
 
                 return true; // Successfully added or updated the comment
             }
             catch (Exception ex)
             {
                 // Log the exception or handle it as needed
-                _unitOfWork.Rollback();
+                await _unitOfWork.RollbackAsync();
                 return false; // Failed to add or update the comment
             }
         }
@@ -572,7 +555,7 @@ namespace Udemy.DAl.Repository
 
             try
             {
-                _unitOfWork.CreateTransaction();
+                await _unitOfWork.CreateTransactionAsync();
                 // Find the enrollment record for the specified course and user
                 var enrollment = await _dbcontext.Enrollments
                     .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
@@ -610,10 +593,10 @@ namespace Udemy.DAl.Repository
                 }
 
                 // Save changes to the database
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
 
                 // Commit the transaction
-                _unitOfWork.Commit();
+                await _unitOfWork.CommitAsync();
 
                 // Return true to indicate success
                 return true;
@@ -621,7 +604,7 @@ namespace Udemy.DAl.Repository
             catch (Exception)
             {
                 // Rollback the transaction in case of an exception
-                _unitOfWork.Rollback();
+                await _unitOfWork.RollbackAsync();
                 throw; // Re-throw the exception
             }
         }
@@ -636,28 +619,6 @@ namespace Udemy.DAl.Repository
 
         #region private methods
 
-        private async Task<Certificate> CreateCertificateEntry(string userId, int courseId)
-        {
-            var enrollment = await _dbcontext.Enrollments
-                .Include(e => e.Course)
-                    .ThenInclude(c => c.Instructor)
-                .FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
-
-            if (enrollment == null)
-                return null;
-
-            var newCertificate = new Certificate
-            {
-                EnrollmentID = enrollment.Id,
-                                                           
-            };
-
-            _dbcontext.Certificates.Add(newCertificate);
-            await _dbcontext.SaveChangesAsync();
-
-            return newCertificate;
-        }
-
         private SectionDto MapSectionDto(Section section, string userId)
         {
             return new SectionDto
@@ -671,11 +632,9 @@ namespace Udemy.DAl.Repository
         private LessonDto MapLessonDto(Lesson lesson, string userId)
         {
             var isCompleted = _dbcontext.LessonProgresses
-                .Include(p => p.Enrollment)
                 .FirstOrDefault(p => p.LessonID == lesson.LessonID && p.Enrollment.UserId == userId);
 
             var notes = _dbcontext.Notes
-                .Include(n => n.Enrollment)
                 .Where(n => n.LessonID == lesson.LessonID && n.Enrollment.UserId == userId)
                 .Select(MapNoteDto)
                 .ToList();
@@ -710,21 +669,8 @@ namespace Udemy.DAl.Repository
                 Content = note.Content
             };
         }
-        private float CalculateAverageRate(Course course)
-        {
-            if (course.Enrollments == null || course.Enrollments.Count == 0)
-                return 0;
+    
 
-            return course.Enrollments.Average(enrollment => enrollment.Feedback?.Rate ?? 0);
-
-        }
-
-        string FormatTotalHours(int totalMinutes)
-        {
-            int hours = totalMinutes / 60;
-            int minutes = totalMinutes % 60;
-            return $"{hours}h {minutes}m";
-        }
 
         #endregion
     }

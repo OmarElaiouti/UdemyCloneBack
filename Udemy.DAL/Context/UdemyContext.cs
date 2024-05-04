@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Udemy.DAl.Models;
 
-namespace Udemy.DAL.UdemyContext
+namespace Udemy.DAL.Context
 {
     public class UdemyContext : IdentityDbContext<User>
     {

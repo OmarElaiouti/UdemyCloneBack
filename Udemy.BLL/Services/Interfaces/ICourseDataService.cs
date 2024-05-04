@@ -7,9 +7,9 @@ using Udemy.DAL.DTOs;
 using Udemy.DAL.DTOs.CourseDtos;
 using Udemy.DAL.DTOs.CoursePartsDtos;
 
-namespace Udemy.DAL.Interfaces
+namespace Udemy.BLL.Interfaces
 {
-    public interface ICourseDataRepository
+    public interface ICourseDataService
     {
 
         Task<CourseSectionsDto> GetSectionsByCourseIdAsync(int courseId, string userId);
@@ -24,7 +24,7 @@ namespace Udemy.DAL.Interfaces
         Task<bool> SetStudentCourseLessonsStatus(int courseId, string userId, IEnumerable<LassonStatusDto> lessonStatusDto);
         Task<CertificateDto> GetOrCreateCertificateDataByUserIdAndCourseId(string userId, int courseId);
         Task<SingleCourseDto> GetSingleCourse(int courseId);
-        Task<CourseInstructorDto> GetCourseInstructor(int courseId);
+        Task<InstructorWithHisCoursesDto> GetCourseInstructor(int courseId);
         Task<CourseSectionsDto> GetCourseSections(int courseId);
         Task<CourseRelatedDto> GetRelatedCourseData(int courseId);
 

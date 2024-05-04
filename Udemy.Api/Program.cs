@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -10,12 +9,11 @@ using Udemy.BLL.Services;
 using Udemy.BLL.Services.Interfaces;
 using Udemy.CU.Helper;
 using Udemy.DAl.Models;
-using Udemy.DAl.Repository;
-using Udemy.DAL.BaseRepository;
-using Udemy.DAL.Interfaces;
-using Udemy.DAL.Repository;
-using Udemy.DAL.UdemyContext;
+using Udemy.DAL.GenericBaseRepository.BaseRepository;
+using Udemy.DAL.Context;
 using Udemy.DAL.UnitOfWork;
+using Udemy.BLL.Interfaces;
+using Udemy.DAL.StaticClasses;
 
 
 
@@ -34,21 +32,20 @@ namespace Udemy.Api
 
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IEmailService, EmailService>();
-
-
-            builder.Services.AddScoped<IInstructorRepository, InstructorRepository>();
-            builder.Services.AddScoped<ICourseDataRepository, CourseDataRepository>();
-            builder.Services.AddScoped<ICourseRepository, CourseRepository>();
-            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
-            builder.Services.AddScoped<ICartRepository, CartRepository>();
+            builder.Services.AddScoped<IInstructorService, InstructorService>();
+            builder.Services.AddScoped<ICourseDataService, CourseDataService>();
+            builder.Services.AddScoped<ICourseService, CourseService>();
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<ICartService, CartService>();
 
 
             builder.Services.AddSingleton<SmtpSettings>();
             builder.Services.AddSingleton<JWT>();
             builder.Services.AddSingleton<AppSettings>();
 
-
+            //AutoMapper Configuration
+            builder.Services.AddAutoMapper(typeof(Program));
 
             //Database Configration
             builder.Services.AddDbContext<UdemyContext>(options =>
@@ -119,7 +116,7 @@ namespace Udemy.Api
             builder.Services.AddSwaggerGen(swagger =>
             {
                 //This is to generate the Default UI of Swagger Documentation    
-                swagger.SwaggerDoc("v2", new OpenApiInfo
+                swagger.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
                     Title = "UdemyClone Web Api",

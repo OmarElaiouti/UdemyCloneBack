@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Udemy.DAL.DTOs.CoursePartsDtos;
 
 namespace Udemy.DAL.DTOs
 {
@@ -16,7 +16,7 @@ namespace Udemy.DAL.DTOs
         public string CourseDisc { get; set; }
         public float Price { get; set; }
         public string Level { get; set; }
-        public IFormFile? Cover { get; set; }
+        public string Cover { get; set; }
         public string Language { get; set; }
 
         public IEnumerable<ObjectiveDto> Objectives { get; set; }

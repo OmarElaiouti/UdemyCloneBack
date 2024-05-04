@@ -17,8 +17,9 @@ using Udemy.BLL.Services.Interfaces;
 using Udemy.CU.Enums;
 using Udemy.CU.Helper;
 using Udemy.DAl.Models;
+using Udemy.DAL.Context;
 using Udemy.DAL.DTOs.AuthDtos;
-using Udemy.DAL.UdemyContext;
+using Udemy.DAL.StaticClasses;
 using Udemy.DAL.UnitOfWork;
 
 

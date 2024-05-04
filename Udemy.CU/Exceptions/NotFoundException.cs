@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Udemy.BLL.Exceptions
+namespace Udemy.CU.Exceptions
 {
     public class NotFoundException: Exception
     {

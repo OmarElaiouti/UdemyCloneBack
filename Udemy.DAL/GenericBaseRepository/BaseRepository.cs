@@ -9,10 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Udemy.DAL.UnitOfWork;
-using Udemy.DAL.UdemyContext;
+using Udemy.DAL.Context;
+using System.Linq.Expressions;
+using Udemy.DAL.GenericBaseRepository.BaseRepository;
 
 
-namespace Udemy.DAL.BaseRepository
+namespace Udemy.DAL.GenericBaseRepository.BaseRepository
 {
   
 
@@ -21,11 +23,6 @@ namespace Udemy.DAL.BaseRepository
         private readonly UdemyContext _context;
         private readonly DbSet<T> _dbSet;
         private bool _disposed = false;
-
-        public BaseRepository(IUnitOfWork<UdemyContext> unitOfWork)
-            : this(unitOfWork.Context)
-        {
-        }
 
         public BaseRepository(UdemyContext context)
         {
@@ -37,12 +34,14 @@ namespace Udemy.DAL.BaseRepository
         {
             return await _dbSet.ToListAsync();
         }
-
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> condition)
+        {
+            return await _dbSet.Where(condition).ToListAsync();
+        }
         public async Task<T> GetByIdAsync(object id)
         {
             return await _dbSet.FindAsync(id);
         }
-
         public async Task Insert(T obj)
         {
             await _dbSet.AddAsync(obj);

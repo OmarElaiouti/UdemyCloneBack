@@ -1,43 +1,32 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Udemy.Core.DTOs;
-using Udemy.Core.Interfaces;
-using Udemy.Core.Interfaces.IRepositories;
-using Udemy.Core.Interfaces.IRepositoris.IBaseRepository;
-using Udemy.Core.Models;
+using System.Security.Claims;
+using Udemy.BLL.Interfaces;
+using Udemy.DAL.DTOs;
 
 namespace Udemy.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class Notifications : ControllerBase
     {
-        private readonly IUserRepository _userService;
-        private readonly IAuthService _authService;
-        private readonly IBaseRepository<Notification> _repository;
+        private readonly IUserService _userService;
 
-        public Notifications(IBaseRepository<Notification> repository, IUserRepository usereService, IAuthService authService)
+        public Notifications(IUserService usereService)
         {
-            _repository = repository;
             _userService = usereService;
-            _authService = authService;
         }
 
-        //[HttpGet("Notification")]
-        //public ActionResult<IEnumerable<Notification>> Notififcation()
-        //{
-        //    return _repository.GetAll2().ToList();
-        //}
-
-
+       
 
 
         [HttpGet("user-notifications")]
-        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUserNotifications([FromHeader(Name = "Authorization")] string token)
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<NotificationDto>>> GetUserNotifications()
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -48,17 +37,18 @@ namespace Udemy.API.Controllers
             }
             catch (Exception ex)
             {
-                // Log the exception
-                return StatusCode(500, "An error occurred while retrieving user notifications.");
+
+                return StatusCode(500, $"An error occurred while retrieving user notifications.");
             }
         }
 
         [HttpPost("notifications-status-last-five")]
-        public async Task<ActionResult> SetLastUserNotificationsStatus([FromHeader(Name = "Authorization")] string token)
+        [Authorize]
+        public async Task<ActionResult> SetLastUserNotificationsStatus()
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {
@@ -66,7 +56,7 @@ namespace Udemy.API.Controllers
                 }
 
 
-                await _userService.UpdateLastFiveNotificationsStatus(userId);
+                await _userService.UpdateLastFiveNotificationsStatusToTrue(userId);
                 return Ok("Last five notifications status updated successfully.");
             }
             catch (Exception ex)
@@ -77,17 +67,18 @@ namespace Udemy.API.Controllers
         }
 
         [HttpGet("notifications-status")]
-        public async Task<ActionResult> SetAllUserNotificationsStatus([FromHeader(Name = "Authorization")] string token)
+        [Authorize]
+        public async Task<ActionResult> SetAllUserNotificationsStatus()
         {
             try
             {
-                string userId = await _authService.DecodeTokenAsync(token.Replace("Bearer ", ""));
+                string? userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
                     return BadRequest("Invalid token or token expired.");
                 }
 
-                await _userService.SetAllUserNotificationsStatus(userId);
+                await _userService.SetAllUserNotificationsStatusToTrue(userId);
                 return Ok("All notifications status updated successfully.");
             }
             catch (Exception ex)

@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +12,6 @@ namespace Udemy.DAL.DTOs.CoursePartsDtos
 
         public int LessonTimeInMinutes { get; set; }
 
-        public IFormFile? LessonVideo { get; set; } 
+        public string LessonVideo { get; set; } 
     }
 }

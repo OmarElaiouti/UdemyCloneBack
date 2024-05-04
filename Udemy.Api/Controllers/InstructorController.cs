@@ -1,69 +1,62 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Udemy.Core.Models;
-using Udemy.Core.DTOs;
-using Udemy.Core.Interfaces;
-using Udemy.Core.Interfaces;
+using Udemy.BLL.Services.Interfaces;
+using Udemy.CU.Exceptions;
+using Udemy.DAl.Models;
 
 namespace Udemy.API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
-    public class InstructorCoursesController : ControllerBase
+    public class InstructorController : ControllerBase
     {
-        private readonly IInstructorRepository _instructorRepository;
-        private readonly UserManager<User> _userManager;
+        private readonly IInstructorService _instructorService;
+        private readonly ILogger<InstructorController> _logger;
 
-        public InstructorCoursesController(IInstructorRepository instructorRepository, UserManager<User> userManager)
+        public InstructorController(IInstructorService instructorService, ILogger<InstructorController> logger)
         {
-            _instructorRepository = instructorRepository;
-            _userManager = userManager;
+            _instructorService = instructorService;
+            _logger = logger;
         }
 
-        [HttpGet("instructors")]
-        public IActionResult GetAllInstructors()
+        [HttpGet("all-instructors")]
+        public async Task<IActionResult> GetAllInstructors()
         {
-            var instructors = _instructorRepository.GetInstructors();
-            return Ok(instructors);
+            try
+            {
+                var instructors = await _instructorService.GetAllInstructors();
+                _logger.LogInformation("Retrieved all instructors successfully.");
+                return Ok(instructors);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all instructors.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving instructors.");
+            }
         }
 
-        //[HttpGet("instructor/{courseId}")]
-        //public IActionResult GetInstructorByCourseId(int courseId)
-        //{
-        //    var instructor = _instructorRepository.GetInstructorByCourseId(courseId);
-
-        //    if (instructor == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    var StudentCount = _instructorRepository.GetStudentsCountForCourse(courseId);
-        //    var instructorDto = new InstructorcourseDto
-        //    {
-        //        InstructorId = instructor.Id,
-        //        CourseName = instructor.CreatedCourses?.FirstOrDefault(c => c.CourseID == courseId)?.Name,
-        //        InstructorName = instructor.UserName,
-        //        InstructorImage = instructor.Image,
-        //        CoursesCount = instructor.CreatedCourses?.Count() ?? 0,
-        //        StudentsCount = StudentCount
-        //    };
-
-        //    return Ok(instructorDto);
-        //}
-
-
-
-        [HttpGet("studentsCount/{courseId}")]
-        public IActionResult GetStudentsCountForCourse(int courseId)
+        [HttpGet("{instructorId}")]
+        public async Task<IActionResult> GetInstructorById(string instructorId)
         {
-
-            int studentsCount = _instructorRepository.GetStudentsCountForCourse(courseId);
-
-            return Ok(new { studentsCount });
-
-
+            try
+            {
+                var instructor = await _instructorService.GetInstructorById(instructorId);
+                _logger.LogInformation("Retrieved instructor by ID successfully.");
+                return Ok(instructor);
+            }
+            catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex.Message);
+                return NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving instructor by ID.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving instructor.");
+            }
         }
 
+        
 
 
     }

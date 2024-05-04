@@ -10,3 +10,16 @@ E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.dll
 E:\backend\Udemy.CU\obj\Debug\net8.0\refint\Udemy.CU.dll
 E:\backend\Udemy.CU\obj\Debug\net8.0\Udemy.CU.pdb
 E:\backend\Udemy.CU\obj\Debug\net8.0\ref\Udemy.CU.dll
+E:\localRepos\Udemyback\Udemy.CU\bin\Debug\net8.0\Udemy.CU.deps.json
+E:\localRepos\Udemyback\Udemy.CU\bin\Debug\net8.0\Udemy.CU.dll
+E:\localRepos\Udemyback\Udemy.CU\bin\Debug\net8.0\Udemy.CU.pdb
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.GeneratedMSBuildEditorConfig.editorconfig
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.AssemblyInfoInputs.cache
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.AssemblyInfo.cs
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.csproj.CoreCompileInputs.cache
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.sourcelink.json
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.dll
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\refint\Udemy.CU.dll
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.pdb
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\ref\Udemy.CU.dll
+E:\localRepos\Udemyback\Udemy.CU\obj\Debug\net8.0\Udemy.CU.csproj.AssemblyReference.cache
