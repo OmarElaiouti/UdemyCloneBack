@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "E:\\backend\\Udemy.CU\\Udemy.CU.csproj",
+      "projectUniqueName": "E:\\localRepos\\Udemyback\\Udemy.CU\\Udemy.CU.csproj",
       "projectName": "Udemy.CU",
-      "projectPath": "E:\\backend\\Udemy.CU\\Udemy.CU.csproj",
+      "projectPath": "E:\\localRepos\\Udemyback\\Udemy.CU\\Udemy.CU.csproj",
       "packagesPath": "C:\\Users\\alzahraa\\.nuget\\packages\\",
-      "outputPath": "E:\\backend\\Udemy.CU\\obj\\",
+      "outputPath": "E:\\localRepos\\Udemyback\\Udemy.CU\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\alzahraa\\AppData\\Roaming\\NuGet\\NuGet.Config",

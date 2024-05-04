@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Udemy.CU\Udemy.CU.csproj" />
-    <ProjectReference Include="..\Udemy.EF\Udemy.DAL.csproj" />
+    <ProjectReference Include="..\Udemy.DAL\Udemy.DAL.csproj" />
   </ItemGroup>
 
 </Project>

@@ -33,9 +33,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\Udemy.BLL.csproj" />
+    <ProjectReference Include="..\Udemy.BLL\Udemy.BLL.csproj" />
     <ProjectReference Include="..\Udemy.CU\Udemy.CU.csproj" />
-    <ProjectReference Include="..\Udemy.EF\Udemy.DAL.csproj" />
+    <ProjectReference Include="..\Udemy.DAL\Udemy.DAL.csproj" />
   </ItemGroup>
 
 </Project>
