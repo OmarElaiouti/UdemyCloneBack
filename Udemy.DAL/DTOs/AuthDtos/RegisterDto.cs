@@ -9,21 +9,14 @@ namespace Udemy.DAL.DTOs.AuthDtos
 {
     public class RegisterDto
     {
-        [Required(ErrorMessage = "First name is required")]
-        public string FirstName { get; set; }
+        [Required(ErrorMessage = "username is required")]
+        public string Username { get; set; }
 
-        [Required(ErrorMessage = "Last name is required")]
-        public string LastName { get; set; }
 
         [Required(ErrorMessage = "Email address is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; }
 
-        [Required(ErrorMessage = "Dialing code is required")]
-        public string DialingCode { get; set; }
-
-        [Required(ErrorMessage = "Mobile number is required")]
-        public string MobileNumber { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
         [DataType(DataType.Password)]

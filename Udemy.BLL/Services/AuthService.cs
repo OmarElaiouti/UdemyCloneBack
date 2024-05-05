@@ -83,11 +83,9 @@ namespace Udemy.BLL.Services
             // Create a new user object
             var newUser = new User
             {
-                FirstName = model.FirstName,
-                LastName = model.LastName,
+                UserName = model.Username,
                 Email = model.Email,
-                UserName = model.Email,
-                PhoneNumber = model.DialingCode + model.MobileNumber
+
             };
 
             try
